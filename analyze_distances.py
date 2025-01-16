@@ -31,4 +31,4 @@ def analyze_distances(input_fname):
 
 
 if __name__=="__main__":
-    analyze_distances("/Users/evanpatterson/Desktop/visuals.png")
+    analyze_distances("output.json")

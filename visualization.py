@@ -13,6 +13,9 @@ def create_and_save_figure(
         graph: nx.DiGraph,
         positions: dict,
         node_size: int|float,
+        arrow_size: int|float,
+        width: int|float,
+        format: str,
         node_colors: dict,
         fpath: str,
         legend_handles=None,
@@ -48,20 +51,23 @@ def create_and_save_figure(
         plt.xlim(*x_limits)
         plt.ylim(*y_limits)
 
-    # draw nodes with outlines
-    #nx.draw_networkx_nodes(graph, pos, node_size=int(node_size * 1.5), node_color=outlines, edgecolors=None)
-
     # draw nodes with fill color on top
-    nx.draw(graph, pos, with_labels=False, node_color=colors, node_size=node_size, arrows=True)
-
-    # draw edges and set other properties
-    #nx.draw_networkx_edges(graph, pos, arrows=True)
+    nx.draw(
+        graph,
+        pos,
+        with_labels=False,
+        node_color=colors,
+        node_size=node_size,
+        arrows=True,
+        arrowsize=arrow_size,
+        width=width)
 
     if legend_handles is not None:
         plt.legend(handles=legend_handles, title="Node Categories")
 
-    plt.savefig(f"{fpath}.png")
-    print(f"Saved figure to {fpath}.png")
+    fname = f"{fpath}.{format}"
+    plt.savefig(fname)
+    print(f"Saved figure to {fname}")
 
     ax = plt.gca()
     x_limits = ax.get_xlim()
@@ -160,7 +166,7 @@ def decode_dict(d):
     return {int(k): v for k, v in d.items()}
 
 
-def run_visualizations(input_fname, output_fname, color_type, node_size):
+def run_visualizations(input_fname, output_fname, color_type, node_size, arrow_size, width, format):
 
     # output to json file
     with open(input_fname, 'r') as file:
@@ -177,7 +183,7 @@ def run_visualizations(input_fname, output_fname, color_type, node_size):
 
     graph = create_graph(graph_nodes=graph_nodes, graph_edges=graph_edges)
 
-    node_colors = (0, 0, 0)
+    node_colors = None
     legend_handles = None
 
     if color_type=='fitness':
@@ -211,10 +217,29 @@ def run_visualizations(input_fname, output_fname, color_type, node_size):
         timing_colors = {gid: (t / tree_depth) for gid, t in genome_depths.items()}
         node_colors = {gid: (b, b, b) for gid, b in timing_colors.items()}
 
+    elif color_type=='d-fitness':
+
+        node_colors = {gid: (0, 0, 1) for gid in genome_id_to_index}
+
+        for gid, idx in genome_id_to_index.items():
+            parents = list(graph.predecessors(gid))
+
+            if len(parents) > 0:
+                parent_fitnesses = np.array([fitnesses[p] for p in parents])
+
+                p_fitness = np.average(parent_fitnesses)
+
+                if fitnesses[gid] < p_fitness:
+                    node_colors[gid] = (1, 0, 0)
+
+
     create_and_save_figure(
         graph=graph,
         positions=positions,
         node_size=node_size,
+        arrow_size=arrow_size,
+        width=width,
+        format=format,
         node_colors=node_colors,
         fpath=output_fname,
         legend_handles=legend_handles)
@@ -238,7 +263,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--color_type",
         type=str,
-        choices=['fitness', 'pca', 'timing'],
+        choices=['fitness', 'pca', 'timing', 'd-fitness'],
         default='fitness',
         help="Type of color to use in the visualization."
     )
@@ -248,9 +273,34 @@ if __name__ == "__main__":
         default=40,
         help="Size of the nodes in the visualization."
     )
+    parser.add_argument(
+        "--arrow_size",
+        type=int,
+        default=2,
+        help="Size of the arrows in the visualization."
+    )
+    parser.add_argument(
+        "--width",
+        type=float,
+        default=1,
+        help="Size of the nodes in the visualization."
+    )
+    parser.add_argument(
+        "--format",
+        type=str,
+        choices=['png', 'svg'],
+        default='png',
+        help="Format to save the figure with.")
 
     # Parse arguments
     args = parser.parse_args()
 
     # Pass arguments to the `run_visualizations` function
-    run_visualizations(args.input_fname, args.output_fname, args.color_type, args.node_size)
+    run_visualizations(
+        input_fname=args.input_fname,
+        output_fname=args.output_fname,
+        color_type=args.color_type,
+        node_size=args.node_size,
+        arrow_size=args.arrow_size,
+        width=args.width,
+        format=args.format)

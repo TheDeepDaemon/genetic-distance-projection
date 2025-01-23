@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from torch.xpu import device
-
 from constants import EPOCHS, NN_VERBOSE
 
 

@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from scipy.spatial.distance import pdist, squareform
-from typing import Tuple
 
 
 def reduce_using_pca(genes_matrix: np.ndarray, reduced_size: int):

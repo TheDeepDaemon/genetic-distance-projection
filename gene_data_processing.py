@@ -2,8 +2,8 @@ import numpy as np
 import math
 from scipy.stats import rankdata
 from typing import Tuple
-from nonlinear_reduction import get_neural_net_positions
-from linear_reduction import reduce_using_pca, reduce_using_svd, reduce_using_mds
+from nn_reduction import get_neural_net_positions
+from standard_reduction import reduce_using_pca, reduce_using_svd, reduce_using_mds
 from scipy.spatial.distance import pdist, squareform
 
 

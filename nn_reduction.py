@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from constants import EPOCHS, NN_VERBOSE
+from constants import NN_VERBOSE
 
 
 class GraphingModel(nn.Module):
@@ -163,7 +163,7 @@ def fit(
             print(f"Epoch [{epoch + 1}/{epochs}], Loss: {avg_loss_primary:.4f}")
 
 
-def get_neural_net_positions(genome_data: np.ndarray, model_type: str):
+def get_neural_net_positions(genome_data: np.ndarray, model_type: str, epochs: int=1):
     """
     Use a neural network to perform a mapping of N to 2 dimensions for all genomes, if N is the number of genes.
 
@@ -198,7 +198,7 @@ def get_neural_net_positions(genome_data: np.ndarray, model_type: str):
         genome_data_tensor = torch.tensor(genome_data, dtype=torch.float32)
 
         # fit the model based on the positions, 2D positions should match genome distances
-        fit(model, genome_data_tensor, device=device, batch_size=16, epochs=EPOCHS, lr=0.0001, verbose=NN_VERBOSE)
+        fit(model, genome_data_tensor, device=device, batch_size=16, epochs=epochs, lr=0.0001, verbose=NN_VERBOSE)
 
         model.eval()
         with torch.no_grad():

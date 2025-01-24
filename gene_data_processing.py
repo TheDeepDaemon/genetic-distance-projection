@@ -157,12 +157,17 @@ def reduce_genome(
         reduction_method: str,
         reduced_size: int,
         reduction_type: str,
-        best_genome_id: int=None
+        best_genome_id: int=None,
+        args=None,
 ):
     reduced_genes_mat = None
     if reduction_method == 'nn':
+        if args is not None:
+            epochs = args.epochs
+        else:
+            epochs = 1
         reduced_genes_mat = get_neural_net_positions(
-            genome_data=genes_matrix, model_type='standard')
+            genome_data=genes_matrix, model_type='standard', epochs=epochs)
 
     elif reduction_method == 'nn1l':
         reduced_genes_mat = get_neural_net_positions(

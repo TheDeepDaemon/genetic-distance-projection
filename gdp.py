@@ -24,9 +24,9 @@ def convert_to_numerical(node_genes, edge_genes):
     return genes_mat, genome_id_to_index
 
 
-def run_gdp(data_path, output_fname, reduction_method):
+def run_gdp(args):
     # load data
-    genome_data_list = load_genomes(data_dir=data_path)
+    genome_data_list = load_genomes(data_dir=args.data_path)
 
     # unpack data
     graph, node_genes, edge_genes, fitnesses = \
@@ -59,13 +59,14 @@ def run_gdp(data_path, output_fname, reduction_method):
     positions = reduce_genome(
         genes_matrix=genes_mat,
         genome_id_to_index=genome_id_to_index,
-        reduction_method=reduction_method,
+        reduction_method=args.reduction_method,
         reduced_size=2,
         reduction_type='position',
-        best_genome_id=best_genome_id)
+        best_genome_id=best_genome_id,
+        args=args)
 
     # output to json file
-    with open(output_fname, 'w', encoding="utf-8") as file:
+    with open(args.output_fname, 'w', encoding="utf-8") as file:
         json.dump({
             'graph_nodes': list(graph.nodes),
             'graph_edges': list(graph.edges),
@@ -100,9 +101,15 @@ if __name__ == "__main__":
         default='mds',
         help="Dimensionality reduction method to use."
     )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=1,
+        help="Number of training epochs."
+    )
 
     # Parse arguments
     args = parser.parse_args()
 
     # Pass arguments to the `run_gdp` function
-    run_gdp(args.data_path, args.output_fname, args.reduction_method)
+    run_gdp(args)

@@ -169,7 +169,7 @@ def decode_dict(d):
 def run_visualizations(input_fname, output_fname, color_type, node_size, arrow_size, width, format):
 
     # output to json file
-    with open(input_fname, 'r') as file:
+    with open(input_fname, 'r', encoding="utf-8") as file:
         contents = json.load(file)
         graph_nodes = contents['graph_nodes']
         graph_edges = contents['graph_edges']

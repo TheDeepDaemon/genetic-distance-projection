@@ -65,7 +65,7 @@ def run_gdp(data_path, output_fname, reduction_method):
         best_genome_id=best_genome_id)
 
     # output to json file
-    with open(output_fname, 'w') as file:
+    with open(output_fname, 'w', encoding="utf-8") as file:
         json.dump({
             'graph_nodes': list(graph.nodes),
             'graph_edges': list(graph.edges),

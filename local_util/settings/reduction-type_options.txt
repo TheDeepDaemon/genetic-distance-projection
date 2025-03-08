@@ -1,0 +1,5 @@
+nn
+snn
+mds
+pca
+/svd

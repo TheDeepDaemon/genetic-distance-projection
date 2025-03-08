@@ -1,0 +1,8 @@
+{
+    "node_size": 10,
+    "arrow_size": 2,
+    "line_width": 1,
+    "visualization_type": "2D",
+    "epochs": 2000,
+    "verbose": true
+}

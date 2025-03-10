@@ -3,6 +3,7 @@ from local_util.load_settings import get_program_arguments
 from local_util.load_examm_data import load_genomes
 import os
 import datetime
+import argparse
 
 
 def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
@@ -18,13 +19,14 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     return save_fpath
 
 
-def main():
+def main(data_source_path):
 
     # load the program arguments
     args = get_program_arguments()
 
-    # where to get the data_storage from
-    data_source_dir = args["data_source_path"]
+    if data_source_path is None:
+        # where to get the data_storage from
+        data_source_path = args["data_source_path"]
 
     # what kind of dimensionality reduction to do
     reduction_type = args["reduction_type"]
@@ -36,7 +38,7 @@ def main():
     load_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_dir, data_source_type)))
+    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_path, data_source_type)))
 
     # create the genome data_storage class to be used for visuals
     genome_data = GenomeData()
@@ -78,4 +80,16 @@ def main():
 
 
 if __name__=="__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Visualize the genome data.")
+
+    parser.add_argument(
+        "data_source_path",
+        nargs="?",
+        default=None,
+        type=str,
+        help="Filename of the directory containing EA run data."
+    )
+
+    args = parser.parse_args()
+
+    main(args.data_source_path)

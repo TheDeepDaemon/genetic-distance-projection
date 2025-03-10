@@ -2,15 +2,17 @@ from genome_data import GenomeData, join_genomes
 from local_util.load_settings import get_program_arguments
 from local_util.load_examm_data import load_genomes
 import os
+import argparse
 
 
-def main():
+def main(data_source_path):
 
     # load the program arguments
     args = get_program_arguments()
 
-    # where to get the data_storage from
-    data_source_dir = args["data_source_path"]
+    if data_source_path is None:
+        # where to get the data_storage from
+        data_source_path = args["data_source_path"]
 
     # data_storage run type
     data_source_type = args["run_type"]
@@ -19,7 +21,7 @@ def main():
     save_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_dir, data_source_type)))
+    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_path, data_source_type)))
 
     node_genes = {data_entry["generation_number"]: data_entry["nodes"] for data_entry in genome_data_list}
     edge_genes = {data_entry["generation_number"]: data_entry["edges"] for data_entry in genome_data_list}
@@ -55,4 +57,16 @@ def main():
 
 
 if __name__=="__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Pre-load the data to streamline further processing.")
+
+    parser.add_argument(
+        "data_source_path",
+        nargs="?",
+        default=None,
+        type=str,
+        help="Filename of the directory containing EA run data."
+    )
+
+    args = parser.parse_args()
+
+    main(args.data_source_path)

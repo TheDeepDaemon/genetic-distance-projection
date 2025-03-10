@@ -84,7 +84,7 @@ def main(data_source_path):
 
         # do 2D visualizations
         genome_data.visualize_genomes2D(
-            f"{save_fpath}.png", args=args)
+            f"{save_fpath}.{args["vis_image_type"]}", args=args)
 
     elif visualization_type == '3D':
 

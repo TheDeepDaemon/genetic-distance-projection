@@ -1,8 +1,9 @@
 from genome_data import GenomeData
-from local_util.load_settings import get_data_source_path, get_data_source_type, get_reduction_type, get_program_arguments
+from local_util.load_settings import get_program_arguments
 from local_util.load_examm_data import load_genomes
 import os
 import datetime
+
 
 def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
 
@@ -19,14 +20,17 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
 
 def main():
 
+    # load the program arguments
+    args = get_program_arguments()
+
     # where to get the data_storage from
-    data_source_dir = get_data_source_path()
+    data_source_dir = args["data_source_path"]
 
     # what kind of dimensionality reduction to do
-    reduction_type = get_reduction_type()
+    reduction_type = args["reduction_type"]
 
     # data_storage run type
-    data_source_type = get_data_source_type()
+    data_source_type = args["run_type"]
 
     # where to store the genome data_storage
     load_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
@@ -43,9 +47,6 @@ def main():
     # set colors
     genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}
     genome_data.set_genome_colors_by_group(genome_groups)
-
-    # extract the program arguments from settings
-    args = get_program_arguments()
 
     save_fpath = get_save_fpath(
         reduction_type=reduction_type,

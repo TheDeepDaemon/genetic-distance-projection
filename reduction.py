@@ -1,14 +1,17 @@
 from genome_data import GenomeData
-from local_util.load_settings import get_data_source_type, get_reduction_type, get_program_arguments
+from local_util.load_settings import get_program_arguments
 
 
 def main():
 
+    # load the program arguments
+    args = get_program_arguments()
+
     # what kind of dimensionality reduction to do
-    reduction_type = get_reduction_type()
+    reduction_type = args["reduction_type"]
 
     # data_storage run type
-    data_source_type = get_data_source_type()
+    data_source_type = args["run_type"]
 
     # where to store the genome data_storage
     load_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"
@@ -21,8 +24,6 @@ def main():
 
     # load the pre-loaded data_storage
     genome_data.load_data(zip_fpath=load_fpath)
-
-    args = get_program_arguments()
 
     # do reduction
     genome_data.reduce_genome(reduction_type=reduction_type, args=args)

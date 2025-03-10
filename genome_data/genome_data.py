@@ -188,9 +188,6 @@ class GenomeData:
 
             self.reduction_type_used = ReductionType.SVD
 
-    def get_reduced_data(self):
-        return {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
-
     def set_genome_colors_by_fitness(self, fitness_values, col_low, col_high):
         """
         Set the colors of the genomes based on fitness values.
@@ -226,9 +223,12 @@ class GenomeData:
             save_fpath: str, args):
 
         if self.reduction_type_used is not None:
+
+            positions = {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
+
             self.visual_data_container.visualize_genomes2D(
                 save_fpath=save_fpath,
-                positions=self.get_reduced_data(),
+                positions=positions,
                 args=args)
         else:
             print("You must reduce the genomes to positions before displaying.")
@@ -239,13 +239,12 @@ class GenomeData:
 
         if self.reduction_type_used is not None:
 
-            if self.position_data.shape[1] == 2:
-                position_data = [(self.index_to_id[i], x, y) for i, (x, y) in enumerate(self.position_data)]
-                self.position_data = position_data
+            positions = {
+                self.index_to_id[i]: (self.index_to_id[i], x, y) for i, (x, y) in enumerate(self.position_data)}
 
             self.visual_data_container.visualize_genomes3D(
                 save_fpath=save_fpath,
-                positions=self.get_reduced_data(),
+                positions=positions,
                 args=args)
         else:
             print("You must reduce the genomes to positions before displaying.")

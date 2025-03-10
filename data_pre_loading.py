@@ -1,16 +1,19 @@
 from genome_data import GenomeData, join_genomes
-from local_util.load_settings import get_data_source_path, get_data_source_type
+from local_util.load_settings import get_program_arguments
 from local_util.load_examm_data import load_genomes
 import os
 
 
 def main():
 
+    # load the program arguments
+    args = get_program_arguments()
+
     # where to get the data_storage from
-    data_source_dir = get_data_source_path()
+    data_source_dir = args["data_source_path"]
 
     # data_storage run type
-    data_source_type = get_data_source_type()
+    data_source_type = args["run_type"]
 
     # where to store the genome data_storage
     save_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"

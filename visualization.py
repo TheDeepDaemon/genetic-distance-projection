@@ -19,6 +19,21 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     return save_fpath
 
 
+def get_best_genome(genome_data_list):
+    global_best_id = None
+    best_fitness = float('inf')
+
+    for entry in genome_data_list:
+        genome_id = entry["generation_number"]
+        genome_fitness = entry["fitness"]
+
+        if genome_fitness < best_fitness:
+            global_best_id = genome_id
+            best_fitness = genome_fitness
+
+    return global_best_id
+
+
 def main(data_source_path):
 
     # load the program arguments
@@ -45,6 +60,10 @@ def main(data_source_path):
 
     # load the processed data_storage from the directory
     genome_data.load_data(zip_fpath=load_fpath)
+
+    if args["transform_to_01"]:
+        best_genome = get_best_genome(genome_data_list)
+        genome_data.transform_positions01(root_genome_id=1, best_genome_id=best_genome)
 
     # set colors
     genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}

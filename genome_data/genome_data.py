@@ -218,6 +218,48 @@ class GenomeData:
         """
         self.visual_data_container.set_colors(genome_colors=genome_colors)
 
+    def transform_positions01(self, root_genome_id, best_genome_id):
+
+        # use the ID to get the index of the root genome
+        root_genome_idx = np.where(self.index_to_id == root_genome_id)[0][0]
+
+        root_genome_pos = self.position_data[root_genome_idx]
+
+        # center it at the root genome
+        self.position_data -= root_genome_pos
+
+        # use the ID to get the index of the best genome
+        best_genome_idx = np.where(self.index_to_id == best_genome_id)[0][0]
+
+        # get the position of the best genome
+        best_genome_pos = self.position_data[best_genome_idx]
+
+        # get the magnitude of the position of the best genome
+        best_genome_magnitude = np.linalg.norm(best_genome_pos)
+
+        # get the angle of rotation
+        theta = np.arctan2(float(best_genome_pos[1]), float(best_genome_pos[0]))
+
+        # get the sin and cos for the rotation matrix
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+
+        # create the rotation matrix
+        rotation_mat = np.array(
+            [
+                [cos_theta, -sin_theta],
+                [sin_theta, cos_theta]],
+            dtype=self.position_data.dtype)
+
+        # make sure it is normalized to a 0 to 1 range
+        rotation_mat /= best_genome_magnitude
+
+        # rotated positions
+        rotated_positions = np.dot(self.position_data, rotation_mat)
+
+        # set the position data
+        self.position_data = rotated_positions
+
     def visualize_genomes2D(
             self,
             save_fpath: str, args):

@@ -169,3 +169,4 @@ cython_debug/
 local_util/settings/data_source_path.txt
 data_storage/*
 vis_output/*
+vis_archive/*

@@ -2,6 +2,19 @@ from genome_data import GenomeData
 from local_util.load_settings import get_data_source_path, get_data_source_type, get_reduction_type, get_program_arguments
 from local_util.load_examm_data import load_genomes
 import os
+import datetime
+
+def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
+
+    save_fpath = f"vis_output/{reduction_type}-{data_source_type}"
+
+    if add_timestamp:
+        # get the timestamp for files
+        dt_now = datetime.datetime.now()
+        timestamp = f"{dt_now.second}-{dt_now.minute}-{dt_now.hour}-{dt_now.day}-{dt_now.month}-{dt_now.year}"
+        save_fpath += "_" + timestamp
+
+    return save_fpath
 
 
 def main():
@@ -31,8 +44,15 @@ def main():
     genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}
     genome_data.set_genome_colors_by_group(genome_groups)
 
+    # extract the program arguments from settings
     args = get_program_arguments()
 
+    save_fpath = get_save_fpath(
+        reduction_type=reduction_type,
+        data_source_type=data_source_type,
+        add_timestamp=args["add_timestamp_to_vis"])
+
+    # get the type of visualization to perform: 2D or 3D
     visualization_type = args["visualization_type"]
 
     if visualization_type == '2D':
@@ -42,7 +62,7 @@ def main():
 
         # do 2D visualizations
         genome_data.visualize_genomes2D(
-            f"vis_output/{reduction_type}-{data_source_type}.png", args=args)
+            f"{save_fpath}.png", args=args)
 
     elif visualization_type == '3D':
 
@@ -51,7 +71,9 @@ def main():
 
         # do 3D visualizations
         genome_data.visualize_genomes3D(
-            f"vis_output/{reduction_type}-{data_source_type}.gif", args=args)
+            f"{save_fpath}.gif", args=args)
+    else:
+        raise ValueError(f"visualization_type: \'{visualization_type}\' not recognized.")
 
 
 if __name__=="__main__":

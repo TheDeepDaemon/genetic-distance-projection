@@ -4,5 +4,6 @@
     "line_width": 1,
     "visualization_type": "2D",
     "epochs": 2000,
-    "verbose": true
+    "verbose": true,
+    "add_timestamp_to_vis": true
 }

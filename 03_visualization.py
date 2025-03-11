@@ -82,9 +82,11 @@ def main(data_source_path):
         # make sure the visualization output directory exists so we can output to it
         os.makedirs("vis_output", exist_ok=True)
 
+        file_ext = args["vis_image_type"]
+
         # do 2D visualizations
         genome_data.visualize_genomes2D(
-            f"{save_fpath}.{args["vis_image_type"]}", args=args)
+            f"{save_fpath}.{file_ext}", args=args)
 
     elif visualization_type == '3D':
 

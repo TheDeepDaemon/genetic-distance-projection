@@ -1,11 +1,11 @@
 import json
-
 import numpy as np
 from .dim_reduction import reduce_using_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds
 from .visualization import VisualDataContainer
 from enum import Enum
 import zipfile
 import io
+import os
 
 
 class ReductionType(Enum):
@@ -14,20 +14,6 @@ class ReductionType(Enum):
     MDS = 3
     PCA = 4
     SVD = 5
-
-
-def _save_np_array(arr: np.ndarray, fname: str, zipf):
-    if arr is not None:
-        arr_buffer = io.BytesIO()
-        np.save(arr_buffer, arr, allow_pickle=False)
-        zipf.writestr(f"{fname}.npy", arr_buffer.getvalue())
-
-
-def _load_np_array(fname, zipf):
-    np_fname = f"{fname}.npy"
-    if np_fname in zipf.namelist():
-        with zipf.open(np_fname) as f:
-            return np.load(f, allow_pickle=False)
 
 
 class GenomeData:
@@ -125,15 +111,17 @@ class GenomeData:
             assert(self.index_to_id is not None)
             assert(self.genome_data_mat is not None)
 
-            _save_np_array(self.index_to_id, "index_to_id", zipf)
+            for k, v in vars(self).items():
+                if isinstance(v, np.ndarray):
+                    arr_buffer = io.BytesIO()
+                    np.save(arr_buffer, v, allow_pickle=False)
+                    zipf.writestr(f"{k}.npy", arr_buffer.getvalue())
 
-            _save_np_array(self.genome_data_mat, "genome_data_mat", zipf)
-
-            _save_np_array(self.position_data, "position_data", zipf)
-
-            _save_np_array(self.visual_data_container.genome_ids, "genome_ids", zipf)
-
-            _save_np_array(self.visual_data_container.relations, "relations", zipf)
+            for k, v in vars(self.visual_data_container).items():
+                if isinstance(v, np.ndarray):
+                    arr_buffer = io.BytesIO()
+                    np.save(arr_buffer, v, allow_pickle=False)
+                    zipf.writestr(f"visual_data_container/{k}.npy", arr_buffer.getvalue())
 
             rt = str(int(self.reduction_type_used.value)) if self.reduction_type_used is not None else None
             info = {
@@ -151,15 +139,42 @@ class GenomeData:
 
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
 
-            self.index_to_id = _load_np_array("index_to_id", zipf)
+            # iterate through files in the zip file
+            for listed_name in zipf.namelist():
 
-            self.genome_data_mat = _load_np_array("genome_data_mat", zipf)
+                # get the path and the filename
+                folder, fname = os.path.split(listed_name)
 
-            self.position_data = _load_np_array("position_data", zipf)
+                # only look at files in the root zip directory
+                if folder == '':
 
-            self.visual_data_container.genome_ids = _load_np_array("genome_ids", zipf)
+                    # get the name and the extension
+                    field_name, ext = os.path.splitext(fname)
 
-            self.visual_data_container.relations = _load_np_array("relations", zipf)
+                    # only look at stored numpy arrays
+                    if ext.lower() == ".npy":
+
+                        # load the array
+                        with zipf.open(listed_name) as f:
+                            arr = np.load(f, allow_pickle=False)
+
+                            # set the attribute based on the filename
+                            setattr(self, field_name, arr)
+
+                elif folder == 'visual_data_container':
+
+                    # get the name and the extension
+                    field_name, ext = os.path.splitext(fname)
+
+                    # only look at stored numpy arrays
+                    if ext.lower() == ".npy":
+
+                        # load the array
+                        with zipf.open(listed_name) as f:
+                            arr = np.load(f, allow_pickle=False)
+
+                            # set the attribute based on the filename
+                            setattr(self.visual_data_container, field_name, arr)
 
             info_fname = "info.json"
             if info_fname in zipf.namelist():
@@ -293,7 +308,8 @@ class GenomeData:
 
     def visualize_genomes2D(
             self,
-            save_fpath: str, args):
+            save_fpath: str,
+            args):
 
         if self.reduction_type_used is not None:
 
@@ -308,7 +324,8 @@ class GenomeData:
 
     def visualize_genomes3D(
             self,
-            save_fpath: str, args):
+            save_fpath: str,
+            args):
 
         if self.reduction_type_used is not None:
 

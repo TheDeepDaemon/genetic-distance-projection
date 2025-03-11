@@ -12,11 +12,12 @@ The project is made up of two main parts:
 	- This local implementation is designed with data from EXAMM (a neuroevolution algorithm) in mind. 
 
 This program is run by running the three files in sequence:
-1. `data_pre_loading.py`: This pre-loads the data from the `.json` files, to streamline further use of the `GenomeData` class. 
-2. `reduction.py`: This performs dimensionality reduction on the genome data, and saves the results to be used for visualization. 
-3. `visualization.py`: This takes the reduced data and creates the visualizations. 
+1. `01_data_pre_loading.py`: This pre-loads the data from the `.json` files, to streamline further use of the `GenomeData` class. 
+2. `02_reduction.py`: This performs dimensionality reduction on the genome data, and saves the results to be used for visualization. 
+3. `03_visualization.py`: This takes the reduced data and creates the visualizations. 
+4. `04_vis_archiver.py`: This moves everything from `vis_output` and moves it to `vis_archive`. It is useful if you want less clutter.
 
-The local program arguments are chosen or set in the "local_util/settings" folder.
+The local program arguments are chosen or set in the `local_util/settings` folder.
 - New program arguments can be added
-	- By adding a new value to the "program_arguments.json" file. 
-	- Or by adding a new file to the "local_util/settings" folder, where the keyword for the program argument will be the filename (without the extension), and the value is whichever line in that file has an asterisk (`*`) at the beginning of the line.
+	- By adding a new value to the `program_arguments.json` file. 
+	- Or by adding a new file to the `local_util/settings` folder, where the keyword for the program argument will be the filename (without the extension), and the value is whichever line in that file has an asterisk (`*`) at the beginning of the line.

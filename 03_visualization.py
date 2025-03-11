@@ -13,7 +13,7 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     if add_timestamp:
         # get the timestamp for files
         dt_now = datetime.datetime.now()
-        timestamp = f"{dt_now.second}-{dt_now.minute}-{dt_now.hour}-{dt_now.day}-{dt_now.month}-{dt_now.year}"
+        timestamp = f"{dt_now.year}-{dt_now.month}-{dt_now.day}-{dt_now.hour}-{dt_now.minute}-{dt_now.second}"
         save_fpath += "_" + timestamp
 
     return save_fpath

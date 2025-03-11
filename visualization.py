@@ -63,7 +63,7 @@ def main(data_source_path):
 
     if args["transform_to_01"]:
         best_genome = get_best_genome(genome_data_list)
-        genome_data.transform_positions01(root_genome_id=1, best_genome_id=best_genome)
+        genome_data.transform_positions01(best_genome_id=best_genome, root_genome_id=1)
 
     # set colors
     genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}

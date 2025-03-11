@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 from .dim_reduction import reduce_using_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds
 from .visualization import VisualDataContainer
@@ -14,6 +16,20 @@ class ReductionType(Enum):
     SVD = 5
 
 
+def _save_np_array(arr: np.ndarray, fname: str, zipf):
+    if arr is not None:
+        arr_buffer = io.BytesIO()
+        np.save(arr_buffer, arr, allow_pickle=False)
+        zipf.writestr(f"{fname}.npy", arr_buffer.getvalue())
+
+
+def _load_np_array(fname, zipf):
+    np_fname = f"{fname}.npy"
+    if np_fname in zipf.namelist():
+        with zipf.open(np_fname) as f:
+            return np.load(f, allow_pickle=False)
+
+
 class GenomeData:
 
     _REDUCTION_TYPE_OPTIONS = {
@@ -24,11 +40,12 @@ class GenomeData:
         ReductionType.SVD: ['svd']}
 
     def __init__(self):
+        self.visual_data_container = VisualDataContainer()
         self.index_to_id = None
         self.genome_data_mat = None
         self.position_data = None
         self.reduction_type_used = None
-        self.visual_data_container = VisualDataContainer()
+        self.genome_fitnesses = None
 
     def init_data(self, data):
         """
@@ -81,6 +98,20 @@ class GenomeData:
     def init_graph_data(self, genome_ids, relations):
         self.visual_data_container.init_graph_data(genome_ids=genome_ids, relations=relations)
 
+    def set_genome_fitnesses(self, fitnesses: dict):
+        """
+        Set the fitnesses of the genomes.
+
+        Args:
+            fitnesses: A dictionary that maps the genome ID to fitness.
+        """
+
+        genome_fitnesses = np.zeros(len(self.index_to_id), dtype=np.float64)
+        for idx, gid in self.index_to_id.items():
+            genome_fitnesses[idx] = fitnesses[gid]
+
+        self.genome_fitnesses = genome_fitnesses
+
     def save_data(self, zip_fpath: str):
         """
         Save all data_storage to files in the specified directory.
@@ -91,29 +122,24 @@ class GenomeData:
 
         with zipfile.ZipFile(zip_fpath, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
 
-            index_to_id_buffer = io.BytesIO()
-            np.save(index_to_id_buffer, self.index_to_id, allow_pickle=False)
-            zipf.writestr("index_to_id.npy", index_to_id_buffer.getvalue())
+            assert(self.index_to_id is not None)
+            assert(self.genome_data_mat is not None)
 
-            genome_data_mat_buffer = io.BytesIO()
-            np.save(genome_data_mat_buffer, self.genome_data_mat, allow_pickle=False)
-            zipf.writestr("genome_data_mat.npy", genome_data_mat_buffer.getvalue())
+            _save_np_array(self.index_to_id, "index_to_id", zipf)
 
-            if self.position_data is not None:
-                position_data_buffer = io.BytesIO()
-                np.save(position_data_buffer, self.position_data, allow_pickle=False)
-                zipf.writestr("position_data.npy", position_data_buffer.getvalue())
+            _save_np_array(self.genome_data_mat, "genome_data_mat", zipf)
 
-            genome_ids_buffer = io.BytesIO()
-            np.save(genome_ids_buffer, self.visual_data_container.genome_ids, allow_pickle=False)
-            zipf.writestr("genome_ids.npy", genome_ids_buffer.getvalue())
+            _save_np_array(self.position_data, "position_data", zipf)
 
-            relations_buffer = io.BytesIO()
-            np.save(relations_buffer, self.visual_data_container.relations, allow_pickle=False)
-            zipf.writestr("relations.npy", relations_buffer.getvalue())
+            _save_np_array(self.visual_data_container.genome_ids, "genome_ids", zipf)
 
-            if self.reduction_type_used is not None:
-                zipf.writestr("reduction_type.txt", str(int(self.reduction_type_used.value)))
+            _save_np_array(self.visual_data_container.relations, "relations", zipf)
+
+            rt = str(int(self.reduction_type_used.value)) if self.reduction_type_used is not None else None
+            info = {
+                "reduction_type": rt}
+
+            zipf.writestr("info.json", json.dumps(info))
 
     def load_data(self, zip_fpath: str):
         """
@@ -125,28 +151,23 @@ class GenomeData:
 
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
 
-            with zipf.open("index_to_id.npy") as f:
-                self.index_to_id = np.load(f, allow_pickle=False)
+            self.index_to_id = _load_np_array("index_to_id", zipf)
 
-            with zipf.open("genome_data_mat.npy") as f:
-                self.genome_data_mat = np.load(f, allow_pickle=False)
+            self.genome_data_mat = _load_np_array("genome_data_mat", zipf)
 
-            position_data_fpath = "position_data.npy"
-            if position_data_fpath in zipf.namelist():
-                with zipf.open(position_data_fpath) as f:
-                    self.position_data = np.load(f, allow_pickle=False)
+            self.position_data = _load_np_array("position_data", zipf)
 
-            with zipf.open("genome_ids.npy") as f:
-                self.visual_data_container.genome_ids = np.load(f, allow_pickle=False)
+            self.visual_data_container.genome_ids = _load_np_array("genome_ids", zipf)
 
-            with zipf.open("relations.npy") as f:
-                self.visual_data_container.relations = np.load(f, allow_pickle=False)
+            self.visual_data_container.relations = _load_np_array("relations", zipf)
 
-            reduction_type_fpath = "reduction_type.txt"
-            if reduction_type_fpath in zipf.namelist():
-                with zipf.open(reduction_type_fpath) as f:
-                    rt = f.read().decode()
-                    self.reduction_type_used = ReductionType(int(rt))
+            info_fname = "info.json"
+            if info_fname in zipf.namelist():
+                with zipf.open(info_fname) as f:
+                    info = json.loads(f.read().decode())
+                    rt = info["reduction_type"]
+                    if rt is not None:
+                        self.reduction_type_used = ReductionType(int(rt))
 
     def reduce_genome(self, reduction_type: str, args: dict=None):
         """
@@ -218,15 +239,25 @@ class GenomeData:
         """
         self.visual_data_container.set_colors(genome_colors=genome_colors)
 
-    def transform_positions01(self, root_genome_id, best_genome_id):
+    def transform_positions01(self, best_genome_id, root_genome_id=None):
+        """
+        Perform a translation, rotation, and scale that positions the points so the starting genome position is [0, 0] and it ends up at [0, 1].
 
-        # use the ID to get the index of the root genome
-        root_genome_idx = np.where(self.index_to_id == root_genome_id)[0][0]
+        Args:
+            best_genome_id: The ID of the best genome.
+            root_genome_id: The ID of the root genome.
+        """
 
-        root_genome_pos = self.position_data[root_genome_idx]
+        # if there is a root genome passed in, use it to center the data
+        if root_genome_id is not None:
 
-        # center it at the root genome
-        self.position_data -= root_genome_pos
+            # use the ID to get the index of the root genome
+            root_genome_idx = np.where(self.index_to_id == root_genome_id)[0][0]
+
+            root_genome_pos = self.position_data[root_genome_idx]
+
+            # center it at the root genome
+            self.position_data -= root_genome_pos
 
         # use the ID to get the index of the best genome
         best_genome_idx = np.where(self.index_to_id == best_genome_id)[0][0]

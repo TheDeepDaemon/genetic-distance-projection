@@ -186,12 +186,12 @@ def parse_program_arguments(args, keyword, expected_type, default_val):
     return default_val
 
 
-def reduce_using_neural_net(genome_data: np.ndarray, model_type: str, args):
+def reduce_using_neural_net(genome_data_mat: np.ndarray, args, model_type: str='standard'):
     """
     Use a neural network to perform a mapping of N to 2 dimensions for all genomes, if N is the number of genes.
 
     Args:
-        genome_data: The genome data_storage in the form of a real-numbered matrix.
+        genome_data_mat: The genome data_storage in the form of a real-numbered matrix.
         model_type: The type of model used: simple or standard.
         args: Program arguments.
 
@@ -210,7 +210,7 @@ def reduce_using_neural_net(genome_data: np.ndarray, model_type: str, args):
     print(f"Using device: {device}")
 
     # retrieve the genome size, should be the number of columns in the matrix
-    genome_size = genome_data.shape[1]
+    genome_size = genome_data_mat.shape[1]
 
     model = None
 
@@ -224,7 +224,7 @@ def reduce_using_neural_net(genome_data: np.ndarray, model_type: str, args):
         model = model.to(device)
 
         # convert the genomes to a tensor
-        genome_data_tensor = torch.tensor(genome_data, dtype=torch.float32)
+        genome_data_tensor = torch.tensor(genome_data_mat, dtype=torch.float32)
 
         # fit the model based on the positions, 2D positions should match genome distances
         fit(model, genome_data_tensor, device=device, batch_size=16, epochs=epochs, lr=0.0001, verbose=verbose)
@@ -233,3 +233,6 @@ def reduce_using_neural_net(genome_data: np.ndarray, model_type: str, args):
         with torch.no_grad():
             genome_data_tensor = genome_data_tensor.to(device)
             return model(genome_data_tensor).cpu().numpy()
+
+def reduce_using_simple_neural_net(genome_data_mat: np.ndarray, args):
+    return reduce_using_neural_net(genome_data_mat=genome_data_mat, args=args, model_type='simple')

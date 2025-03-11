@@ -1,6 +1,7 @@
 import json
 import numpy as np
-from .dim_reduction import reduce_using_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds
+from .dim_reduction import (
+    reduce_using_neural_net, reduce_using_simple_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds)
 from .visualization import VisualDataContainer
 from enum import Enum
 import zipfile
@@ -16,6 +17,7 @@ class ReductionType(Enum):
     SVD = 5
 
 
+
 class GenomeData:
 
     _REDUCTION_TYPE_OPTIONS = {
@@ -24,6 +26,18 @@ class GenomeData:
         ReductionType.MDS: ['mds'],
         ReductionType.PCA: ['pca'],
         ReductionType.SVD: ['svd']}
+
+    _REDUCTION_TYPE_FUNCTIONS = {
+        ReductionType.NEURAL_NET: lambda genome_data_mat, args: reduce_using_neural_net(
+            genome_data_mat=genome_data_mat, args=args),
+        ReductionType.SIMPLE_NEURAL_NET: lambda genome_data_mat, args: reduce_using_simple_neural_net(
+            genome_data_mat=genome_data_mat, args=args),
+        ReductionType.MDS: lambda genome_data_mat, args: reduce_using_mds(
+            genes_matrix=genome_data_mat, reduced_size=2, random_state=np.random.randint(0, 10 ** 9)),
+        ReductionType.PCA: lambda genome_data_mat, args: reduce_using_pca(
+            genes_matrix=genome_data_mat, reduced_size=2),
+        ReductionType.SVD: lambda genome_data_mat, args: reduce_using_svd(
+            genes_matrix=genome_data_mat, reduced_size=2)}
 
     def __init__(self):
         self.visual_data_container = VisualDataContainer()
@@ -193,36 +207,12 @@ class GenomeData:
             args: Any program arguments.
         """
 
-        if reduction_type in GenomeData._REDUCTION_TYPE_OPTIONS[ReductionType.NEURAL_NET]:
-            self.position_data = reduce_using_neural_net(
-                genome_data=self.genome_data_mat, model_type='standard', args=args)
+        for rt, str_labels in GenomeData._REDUCTION_TYPE_OPTIONS.items():
 
-            self.reduction_type_used = ReductionType.NEURAL_NET
-
-        elif reduction_type in GenomeData._REDUCTION_TYPE_OPTIONS[ReductionType.SIMPLE_NEURAL_NET]:
-            self.position_data = reduce_using_neural_net(
-                genome_data=self.genome_data_mat, model_type='simple', args=args)
-
-            self.reduction_type_used = ReductionType.SIMPLE_NEURAL_NET
-
-        elif reduction_type in GenomeData._REDUCTION_TYPE_OPTIONS[ReductionType.MDS]:
-            random_state = np.random.randint(0, 10 ** 9)
-            self.position_data = reduce_using_mds(
-                genes_matrix=self.genome_data_mat, reduced_size=2, random_state=random_state)
-
-            self.reduction_type_used = ReductionType.MDS
-
-        elif reduction_type in GenomeData._REDUCTION_TYPE_OPTIONS[ReductionType.PCA]:
-            self.position_data = reduce_using_pca(
-                genes_matrix=self.genome_data_mat, reduced_size=2)
-
-            self.reduction_type_used = ReductionType.PCA
-
-        elif reduction_type in GenomeData._REDUCTION_TYPE_OPTIONS[ReductionType.SVD]:
-            self.position_data = reduce_using_svd(
-                genes_matrix=self.genome_data_mat, reduced_size=2)
-
-            self.reduction_type_used = ReductionType.SVD
+            if reduction_type in str_labels:
+                self.position_data = GenomeData._REDUCTION_TYPE_FUNCTIONS[rt](self.genome_data_mat, args)
+                self.reduction_type_used = rt
+                break
 
     def set_genome_colors_by_fitness(self, fitness_values, col_low, col_high):
         """

@@ -17,16 +17,17 @@ class ReductionType(Enum):
     SVD = 5
 
 
-
 class GenomeData:
 
+    # the acceptable string arguments for each reduction type
     _REDUCTION_TYPE_OPTIONS = {
-        ReductionType.NEURAL_NET: ['nn'],
-        ReductionType.SIMPLE_NEURAL_NET: ['snn'],
-        ReductionType.MDS: ['mds'],
-        ReductionType.PCA: ['pca'],
-        ReductionType.SVD: ['svd']}
+        ReductionType.NEURAL_NET: ['nn', 'neural_network'],
+        ReductionType.SIMPLE_NEURAL_NET: ['snn', 'simple_neural_network'],
+        ReductionType.MDS: ['mds', 'multi_dimensional_scaling'],
+        ReductionType.PCA: ['pca', 'principal_component_analysis'],
+        ReductionType.SVD: ['svd', 'singular_value_decomposition']}
 
+    # the function used to perform each type of reduction
     _REDUCTION_TYPE_FUNCTIONS = {
         ReductionType.NEURAL_NET: lambda genome_data_mat, args: reduce_using_neural_net(
             genome_data_mat=genome_data_mat, args=args),
@@ -122,15 +123,18 @@ class GenomeData:
 
         with zipfile.ZipFile(zip_fpath, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
 
+            # there should be genome data
             assert(self.index_to_id is not None)
             assert(self.genome_data_mat is not None)
 
+            # iterate through every attribute that is a numpy array
             for k, v in vars(self).items():
                 if isinstance(v, np.ndarray):
                     arr_buffer = io.BytesIO()
                     np.save(arr_buffer, v, allow_pickle=False)
                     zipf.writestr(f"{k}.npy", arr_buffer.getvalue())
 
+            # iterate through every visual_data_container attribute that is a numpy array
             for k, v in vars(self.visual_data_container).items():
                 if isinstance(v, np.ndarray):
                     arr_buffer = io.BytesIO()
@@ -207,12 +211,18 @@ class GenomeData:
             args: Any program arguments.
         """
 
+        # iterate through all reduction types, check if each has been selected
         for rt, str_labels in GenomeData._REDUCTION_TYPE_OPTIONS.items():
 
-            if reduction_type in str_labels:
+            # if this reduction type argument is in the list of possible reduction types
+            if reduction_type.lower() in str_labels:
+
+                # perform dimensionality reduction with the selected reduction type
                 self.position_data = GenomeData._REDUCTION_TYPE_FUNCTIONS[rt](self.genome_data_mat, args)
-                self.reduction_type_used = rt
-                break
+                self.reduction_type_used = rt # keep track of which reduction type was used
+                return # return when done so only one can be used
+
+        raise ValueError(f"Reduction type not recognized: {reduction_type}")
 
     def set_genome_colors_by_fitness(self, fitness_values, col_low, col_high):
         """

@@ -1,9 +1,10 @@
 from genome_data import GenomeData
 from local_util.load_settings import get_program_arguments
-from local_util.load_examm_data import load_genomes
+from local_util.load_examm_data import load_data
 import os
 import datetime
 import argparse
+import matplotlib
 
 
 def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
@@ -36,6 +37,9 @@ def get_best_genome(genome_data_list):
 
 def main(data_source_path):
 
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+
     # load the program arguments
     args = get_program_arguments()
 
@@ -53,7 +57,7 @@ def main(data_source_path):
     load_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_path, data_source_type)))
+    genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
 
     # create the genome data_storage class to be used for visuals
     genome_data = GenomeData()

@@ -1,1 +1,3 @@
-from .visual_data_container import VisualDataContainer
+from .coloring import calc_colors_by_fitness, calc_colors_by_group
+from .visualize_genomes3D import visualize_genomes3D
+from .visualize_genomes2D import visualize_genomes2D

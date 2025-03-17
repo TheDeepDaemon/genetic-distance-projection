@@ -3,7 +3,7 @@ import os.path
 
 
 class SettingsPaths:
-    settings_dir = "local_util/settings"
+    settings_dir = "settings"
     program_arguments_fname = "program_arguments.json"
 
 
@@ -12,17 +12,17 @@ class InvalidOptionsFileError(Exception):
     pass
 
 
-def _load_from_options_file(keyword):
+def _load_from_options_file(fname):
     """
     Select the option from the source file that has a '*' as the first character.
     If none are selected with a '*', then return the first non-empty option from the file.
 
     Args:
-        keyword: The keyword, which should be the same as the filename.
+        fname: The keyword, which should be the same as the filename.
 
     Returns: The option selected.
     """
-    file_path = os.path.join(SettingsPaths.settings_dir, keyword)
+    file_path = os.path.join(SettingsPaths.settings_dir, fname)
 
     with open(file_path, 'r') as file:
         lines = file.read().split('\n')
@@ -65,7 +65,8 @@ def get_program_arguments():
     fnames.remove(SettingsPaths.program_arguments_fname)
 
     for fname in fnames:
-        keyword = os.path.splitext(fname)[0]
-        args[keyword] = _load_from_options_file(fname)
+        if os.path.isfile(os.path.join(SettingsPaths.settings_dir, fname)):
+            keyword = os.path.splitext(fname)[0]
+            args[keyword] = _load_from_options_file(fname)
 
     return args

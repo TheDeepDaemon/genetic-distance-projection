@@ -2,11 +2,13 @@ import json
 import numpy as np
 from .dim_reduction import (
     reduce_using_neural_net, reduce_using_simple_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds)
-from .visualization import VisualDataContainer
+from .visualization import calc_colors_by_fitness, calc_colors_by_group, visualize_genomes2D, visualize_genomes3D
 from enum import Enum
 import zipfile
 import io
 import os
+import networkx as nx
+from matplotlib.patches import Patch
 
 
 class ReductionType(Enum):
@@ -41,12 +43,16 @@ class GenomeData:
             genes_matrix=genome_data_mat, reduced_size=2)}
 
     def __init__(self):
-        self.visual_data_container = VisualDataContainer()
         self.index_to_id = None
         self.genome_data_mat = None
         self.position_data = None
         self.reduction_type_used = None
         self.genome_fitnesses = None
+
+        self.genome_ids = None
+        self.relations = None
+        self.genome_colors = None
+        self.legend_handles = None
 
     def init_data(self, data):
         """
@@ -97,7 +103,24 @@ class GenomeData:
         return {k: i for i, k in enumerate(self.index_to_id)}
 
     def init_graph_data(self, genome_ids, relations):
-        self.visual_data_container.init_graph_data(genome_ids=genome_ids, relations=relations)
+        self.genome_ids = np.array(genome_ids, dtype=np.int64)
+        self.relations = np.array(relations, dtype=np.int64)
+
+    def make_graph(self):
+        """
+        Convert this data_storage to a networkx graph that is usable.
+
+        Returns: A networkx graph of the relations between the genomes.
+        """
+        graph = nx.DiGraph()
+        for genome_id in self.genome_ids:
+            graph.add_node(genome_id)
+
+        for id_pair in self.relations:
+            if (id_pair[0] in graph.nodes) and (id_pair[1] in graph.nodes):
+                graph.add_edge(id_pair[0], id_pair[1])
+
+        return graph
 
     def set_genome_fitnesses(self, fitnesses: dict):
         """
@@ -108,7 +131,7 @@ class GenomeData:
         """
 
         genome_fitnesses = np.zeros(len(self.index_to_id), dtype=np.float64)
-        for idx, gid in self.index_to_id.items():
+        for idx, gid in enumerate(self.index_to_id):
             genome_fitnesses[idx] = fitnesses[gid]
 
         self.genome_fitnesses = genome_fitnesses
@@ -133,13 +156,6 @@ class GenomeData:
                     arr_buffer = io.BytesIO()
                     np.save(arr_buffer, v, allow_pickle=False)
                     zipf.writestr(f"{k}.npy", arr_buffer.getvalue())
-
-            # iterate through every visual_data_container attribute that is a numpy array
-            for k, v in vars(self.visual_data_container).items():
-                if isinstance(v, np.ndarray):
-                    arr_buffer = io.BytesIO()
-                    np.save(arr_buffer, v, allow_pickle=False)
-                    zipf.writestr(f"visual_data_container/{k}.npy", arr_buffer.getvalue())
 
             rt = str(int(self.reduction_type_used.value)) if self.reduction_type_used is not None else None
             info = {
@@ -192,7 +208,7 @@ class GenomeData:
                             arr = np.load(f, allow_pickle=False)
 
                             # set the attribute based on the filename
-                            setattr(self.visual_data_container, field_name, arr)
+                            setattr(self, field_name, arr)
 
             info_fname = "info.json"
             if info_fname in zipf.namelist():
@@ -224,7 +240,7 @@ class GenomeData:
 
         raise ValueError(f"Reduction type not recognized: {reduction_type}")
 
-    def set_genome_colors_by_fitness(self, fitness_values, col_low, col_high):
+    def set_colors_by_fitness(self, fitness_values, col_low, col_high):
         """
         Set the colors of the genomes based on fitness values.
 
@@ -233,7 +249,13 @@ class GenomeData:
             col_low: The color indicating low fitness.
             col_high: The color indicating high fitness.
         """
-        self.visual_data_container.set_colors_by_fitness(
+
+        self.legend_handles = [
+            Patch(color=col_low, label='Low Loss'),
+            Patch(color=col_high, label='High Loss'),
+        ]
+
+        self.genome_colors = calc_colors_by_fitness(
             fitness_values=fitness_values, col_low=col_low, col_high=col_high)
 
     def set_genome_colors_by_group(self, genome_groups):
@@ -243,7 +265,7 @@ class GenomeData:
         Args:
             genome_groups: The group number for each genome.
         """
-        self.visual_data_container.set_colors_by_group(genome_groups=genome_groups)
+        self.genome_colors = calc_colors_by_group(genome_groups=genome_groups)
 
     def set_genome_colors(self, genome_colors: dict):
         """
@@ -252,7 +274,7 @@ class GenomeData:
         Args:
             genome_colors: The color for each genome.
         """
-        self.visual_data_container.set_colors(genome_colors=genome_colors)
+        self.genome_colors = genome_colors
 
     def transform_positions01(self, best_genome_id, root_genome_id=None):
         """
@@ -306,36 +328,72 @@ class GenomeData:
         # set the position data
         self.position_data = rotated_positions
 
+    def package_args(self, args, **kwargs):
+        """
+        Put all the arguments and keyword arguments in the same dictionary, along with any attributes.
+
+        Args:
+            args: The existing program arguments.
+
+        Returns:
+            The combined dictionary.
+        """
+
+        packaged_args = dict()
+        packaged_args.update(args) # program arguments
+        packaged_args.update(vars(self)) # object attributes
+        packaged_args.update(kwargs) # keyword arguments
+
+        return packaged_args
+
     def visualize_genomes2D(
             self,
             save_fpath: str,
             args):
+        """
+        Perform 2D visualizations, save to an image file.
+
+        Args:
+            save_fpath: The filepath to save it to.
+            args: Program arguments and their keywords.
+        """
+
+        if self.genome_colors is None:
+            print("Genome colors are not set!")
+            return
 
         if self.reduction_type_used is not None:
 
             positions = {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
 
-            self.visual_data_container.visualize_genomes2D(
-                save_fpath=save_fpath,
-                positions=positions,
-                args=args)
+            visualize_genomes2D(args=self.package_args(
+                args, positions=positions, save_fpath=save_fpath, graph=self.make_graph()))
         else:
             print("You must reduce the genomes to positions before displaying.")
 
     def visualize_genomes3D(
             self,
             save_fpath: str,
-            args):
+            args: dict):
+        """
+        Perform the 3D visualization, save to a GIF.
+
+        Args:
+            save_fpath: The filepath to save it to.
+            args: Program arguments and their keywords.
+        """
+
+        if self.genome_colors is None:
+            print("Genome colors are not set!")
+            return
 
         if self.reduction_type_used is not None:
 
             positions = {
                 self.index_to_id[i]: (self.index_to_id[i], x, y) for i, (x, y) in enumerate(self.position_data)}
 
-            self.visual_data_container.visualize_genomes3D(
-                save_fpath=save_fpath,
-                positions=positions,
-                args=args)
+            visualize_genomes3D(args=self.package_args(
+                args, positions=positions, save_fpath=save_fpath, graph=self.make_graph()))
         else:
             print("You must reduce the genomes to positions before displaying.")
 

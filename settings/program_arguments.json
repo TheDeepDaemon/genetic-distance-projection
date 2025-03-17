@@ -7,5 +7,5 @@
     "verbose": true,
     "add_timestamp_to_vis": true,
     "transform_to_01": true,
-    "vis_image_type": "png"
+    "vis_image_type": "pdf"
 }

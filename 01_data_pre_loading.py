@@ -1,6 +1,6 @@
 from genome_data import GenomeData, join_genomes
 from local_util.load_settings import get_program_arguments
-from local_util.load_examm_data import load_genomes
+from local_util.load_examm_data import load_data
 import os
 import argparse
 
@@ -21,7 +21,7 @@ def main(data_source_path):
     save_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = load_genomes(data_dir=str(os.path.join(data_source_path, data_source_type)))
+    genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
 
     node_genes = {data_entry["generation_number"]: data_entry["nodes"] for data_entry in genome_data_list}
     edge_genes = {data_entry["generation_number"]: data_entry["edges"] for data_entry in genome_data_list}
@@ -48,6 +48,11 @@ def main(data_source_path):
 
     # init graph data_storage with genome IDs and parent-child relations
     genome_data.init_graph_data(genome_ids=genome_ids, relations=relations)
+
+    # set genome fitnesses
+    fitnesses = {data_entry["generation_number"]: data_entry["fitness"] for data_entry in genome_data_list}
+
+    genome_data.set_genome_fitnesses(fitnesses=fitnesses)
 
     # make sure this directory exists, so we can output to it
     os.makedirs("data_storage", exist_ok=True)

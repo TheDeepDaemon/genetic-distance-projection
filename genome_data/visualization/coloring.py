@@ -61,7 +61,7 @@ def to_color(
         return (r, g, b)
 
 
-def _set_colors_by_fitness(fitness_values: dict, col_low, col_high):
+def calc_colors_by_fitness(fitness_values: dict, col_low, col_high):
     """
     Set the colors of the genomes based on fitness values.
 
@@ -96,7 +96,7 @@ def generate_arbitrary_colors(n: int):
     return colors[:n]
 
 
-def _set_colors_by_group(genome_groups: dict):
+def calc_colors_by_group(genome_groups: dict):
     """
     Set the colors of the genomes based on what group they belong to.
 

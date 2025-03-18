@@ -1,5 +1,5 @@
 from gdp import GenomeData, GenomeVisualizer
-from local_util.load_settings import get_program_arguments
+from local_util.load_config import load_program_arguments
 from local_util.load_examm_data import load_data
 import os
 import datetime
@@ -43,7 +43,7 @@ def main(data_source_path):
     matplotlib.rcParams['ps.fonttype'] = 42
 
     # load the program arguments
-    args = get_program_arguments()
+    args = load_program_arguments()
 
     if data_source_path is None:
         # where to get the data_storage from

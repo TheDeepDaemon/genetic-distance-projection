@@ -166,8 +166,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-settings/data_source_path.*
-settings/data_source_path
+config/config.yaml
 data_storage/*
 vis_output/*
 vis_archive/*

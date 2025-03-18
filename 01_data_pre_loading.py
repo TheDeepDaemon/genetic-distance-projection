@@ -1,5 +1,5 @@
-from genome_data import GenomeData, join_genomes
-from local_util.load_settings import get_program_arguments
+from gdp import GenomeData, join_genomes
+from local_util.load_config import load_program_arguments
 from local_util.load_examm_data import load_data
 import os
 import argparse
@@ -8,7 +8,7 @@ import argparse
 def main(data_source_path):
 
     # load the program arguments
-    args = get_program_arguments()
+    args = load_program_arguments()
 
     if data_source_path is None:
         # where to get the data_storage from
@@ -23,8 +23,13 @@ def main(data_source_path):
     # load the source data_storage (from the EXAMM run)
     genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
 
-    node_genes = {data_entry["generation_number"]: [gn["n"] for gn in data_entry["nodes"]] for data_entry in genome_data_list}
-    edge_genes = {data_entry["generation_number"]: [ge["n"] for ge in data_entry["edges"]] for data_entry in genome_data_list}
+    node_genes = {
+        data_entry["generation_number"]: [gn["n"] for gn in data_entry["nodes"]]
+        for data_entry in genome_data_list}
+
+    edge_genes = {
+        data_entry["generation_number"]: [ge["n"] for ge in data_entry["edges"]]
+        for data_entry in genome_data_list}
 
     # genome data_storage from node genes
     node_gene_data = GenomeData()
@@ -59,6 +64,9 @@ def main(data_source_path):
 
     # save the data_storage and reduced data_storage
     genome_data.save_data(zip_fpath=save_fpath)
+
+    if os.path.exists(save_fpath):
+        print("Genome data saved.")
 
 
 if __name__=="__main__":

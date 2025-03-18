@@ -1,11 +1,11 @@
-from genome_data import GenomeData
-from local_util.load_settings import get_program_arguments
+from gdp import GenomeData
+from local_util.load_config import load_program_arguments
 
 
 def main():
 
     # load the program arguments
-    args = get_program_arguments()
+    args = load_program_arguments()
 
     # what kind of dimensionality reduction to do
     reduction_type = args["reduction_type"]

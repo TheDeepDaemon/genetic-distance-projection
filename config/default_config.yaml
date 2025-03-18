@@ -1,0 +1,49 @@
+
+args:
+  data_source_path: PUT_THE_PATH_TO_DATA_HERE
+  node_size: 4
+  arrow_size: 2
+  line_width: 0.2
+  3D_node_alpha: 1.0
+  3D_line_alpha: 0.1
+  subgraph_node_size: 100
+  subgraph_width: 0.3
+  subgraph_height: 0.3
+  subgraph_x_spacing: 1
+  subgraph_y_spacing: 1
+  epochs: 2000
+  verbose: true
+  add_timestamp_to_vis: true
+  transform_to_01: true
+  vis_image_type: "pdf"
+
+multiple_choice_args:
+
+  reduction_type:
+    - name: pca
+      active: true
+    - name: svd
+      active: false
+    - name: mds
+      active: false
+    - name: nn
+      active: false
+    - name: snn
+      active: false
+
+  run_type:
+    - name: high-crossover
+      active: true
+    - name: low-crossover
+      active: false
+    - name: no-repopulation
+      active: false
+
+  visualization_type:
+    - name: "2D"
+      active: true
+    - name: "3D"
+      active: false
+    - name: "microscope"
+      active: false
+

@@ -4,6 +4,7 @@ import math
 import matplotlib.colors as mcolors
 from typing import Tuple
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 
 def dict_values_to_percentiles(fitnesses: dict):
@@ -70,13 +71,19 @@ def calc_colors_by_fitness(fitness_values: dict, col_low, col_high):
         col_low: The color indicating low fitness.
         col_high: The color indicating high fitness.
 
-    Returns: A dict mapping genome ID to color.
+    Returns:
+        Tuple containing the dictionary of genome ID to color, and the legend_handles.
     """
 
     fitness_colors = dict_values_to_percentiles(fitnesses=fitness_values)
     node_colors = {gid: to_color(f, col_low=col_low, col_high=col_high) for gid, f in fitness_colors.items()}
 
-    return node_colors
+    legend_handles = [
+        Patch(color=col_low, label='Low Loss'),
+        Patch(color=col_high, label='High Loss'),
+    ]
+
+    return node_colors, legend_handles
 
 
 def generate_arbitrary_colors(n: int):
@@ -86,8 +93,8 @@ def generate_arbitrary_colors(n: int):
     Args:
         n: The size of the color palette.
 
-    Returns: A list of colors.
-
+    Returns:
+        A list of colors.
     """
     cmap = plt.get_cmap('hsv')
     nsq = min(n**2, 2**24)
@@ -103,8 +110,8 @@ def calc_colors_by_group(genome_groups: dict):
     Args:
         genome_groups: The group number for each genome.
 
-    Returns: Dictionary of genome ID to color.
-
+    Returns:
+        Tuple containing the dictionary of genome ID to color, and the legend_handles.
     """
 
     groups = set(genome_groups.values())
@@ -128,4 +135,9 @@ def calc_colors_by_group(genome_groups: dict):
 
     np.random.shuffle(color_list)
 
-    return {gid: color_list[group_number] for gid, group_number in genome_groups.items()}
+    genome_colors = {gid: color_list[group_number] for gid, group_number in genome_groups.items()}
+
+    legend_handles = [
+        Patch(color=color_list[group_number], label=f"Group {group_number}") for group_number in list(groups)]
+
+    return genome_colors, legend_handles

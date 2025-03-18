@@ -3,13 +3,17 @@ import matplotlib.pyplot as plt
 from .arrow3d import Arrow3D
 import io
 import imageio.v2 as imageio
+from ...genome_data import GenomeData
 
 
-def visualize_genomes3D(args):
+def visualize_genomes3D(save_fpath, genome_data: GenomeData, genome_colors, args):
     """
     Perform the 3D visualization, save to a GIF.
 
     Args:
+        save_fpath: The filepath to save the GIF to.
+        genome_data: The genome data to use.
+        genome_colors: The node colors for the genomes.
         args: Passed arguments and their keywords.
     """
 
@@ -23,13 +27,13 @@ def visualize_genomes3D(args):
     node_size = args["node_size"]
     arrow_size = args["arrow_size"]
     line_width = args["line_width"]
+    line_alpha = args["3D_line_alpha"]
 
     # function arguments
-    graph = args["graph"]
-    positions = args["positions"]
-    genome_colors = args["genome_colors"]
+    graph = genome_data.make_graph()
+    positions = genome_data.get_positions_with_gid()
 
-    alpha = 1
+    node_alpha = args["3D_node_alpha"]
 
     for node in graph.nodes:
         x, y, z = positions[node]
@@ -39,7 +43,7 @@ def visualize_genomes3D(args):
             marker='o',
             markersize=node_size,
             color=genome_colors[node],
-            alpha=alpha)
+            alpha=node_alpha)
 
     for edge in graph.edges:
         from_node, to_node = edge
@@ -54,7 +58,7 @@ def visualize_genomes3D(args):
             lw=line_width,
             arrowstyle="-|>",
             color=(0, 0, 0),
-            alpha=alpha,
+            alpha=line_alpha,
             zorder=-100000)
 
         ax.add_artist(a)
@@ -63,7 +67,6 @@ def visualize_genomes3D(args):
     ax.set_ylabel('X')
     ax.set_zlabel('Y')
     plt.title('3D Graph Plot')
-
 
     # SAVE IMAGES OF THE PLOT
     increment = args["increment"] if "increment" in args else 5
@@ -83,7 +86,6 @@ def visualize_genomes3D(args):
         buffer.close()
 
     # save the GIF
-    save_fpath = args["save_fpath"]
     imageio.mimsave(save_fpath, frames, fps=len(viewpoints) / n_seconds)
     print(f"GIF saved at {save_fpath}")
 

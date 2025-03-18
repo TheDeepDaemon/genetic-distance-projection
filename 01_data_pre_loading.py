@@ -23,8 +23,8 @@ def main(data_source_path):
     # load the source data_storage (from the EXAMM run)
     genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
 
-    node_genes = {data_entry["generation_number"]: data_entry["nodes"] for data_entry in genome_data_list}
-    edge_genes = {data_entry["generation_number"]: data_entry["edges"] for data_entry in genome_data_list}
+    node_genes = {data_entry["generation_number"]: [gn["n"] for gn in data_entry["nodes"]] for data_entry in genome_data_list}
+    edge_genes = {data_entry["generation_number"]: [ge["n"] for ge in data_entry["edges"]] for data_entry in genome_data_list}
 
     # genome data_storage from node genes
     node_gene_data = GenomeData()

@@ -1,11 +1,11 @@
 # genetic-distance-projection  
 A visualization method for evolutionary algorithms.
 
-The project is made up of two main parts:  
-- The `genome_data` folder, which contains the `GenomeData` class.
+The project is made up of two main parts:
+- The `gdp` folder, which contains the `GenomeData` class, and the `GenomeVisualizer` class.
 	- This is designed such that a person should be able to use it independently in another project.
 	- This contains the implementation of the genetic distance projection (GDP) visualization method.
-	- This is further broken down into reduction and visualization.
+	- Dimensionality reduction and visualization are handled separately.
 - The local implementation. 
 	- This involves the loading of genome data, the loading of program arguments, and the use of GDP. 
 	- This can be treated as an example of how to use the `GenomeData` class.

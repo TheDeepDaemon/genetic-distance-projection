@@ -1,4 +1,4 @@
-from genome_data import GenomeData
+from gdp import GenomeData, GenomeVisualizer
 from local_util.load_settings import get_program_arguments
 from local_util.load_examm_data import load_data
 import os
@@ -14,6 +14,8 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     if add_timestamp:
         # get the timestamp for files
         dt_now = datetime.datetime.now()
+
+        # use a timestamp down to the second to prevent overlap or conflicting names
         timestamp = f"{dt_now.year}-{dt_now.month}-{dt_now.day}-{dt_now.hour}-{dt_now.minute}-{dt_now.second}"
         save_fpath += "_" + timestamp
 
@@ -57,7 +59,8 @@ def main(data_source_path):
     load_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
+    genome_data_dict = load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json")
+    genome_data_list = list(genome_data_dict.values())
 
     # create the genome data_storage class to be used for visuals
     genome_data = GenomeData()
@@ -69,9 +72,12 @@ def main(data_source_path):
         best_genome = get_best_genome(genome_data_list)
         genome_data.transform_positions01(best_genome_id=best_genome, root_genome_id=1)
 
+    # create the visualizer
+    genome_visualizer = GenomeVisualizer(genome_data=genome_data)
+
     # set colors
     genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}
-    genome_data.set_genome_colors_by_group(genome_groups)
+    genome_visualizer.set_genome_colors_by_group(genome_groups)
 
     save_fpath = get_save_fpath(
         reduction_type=reduction_type,
@@ -89,8 +95,7 @@ def main(data_source_path):
         file_ext = args["vis_image_type"]
 
         # do 2D visualizations
-        genome_data.visualize_genomes2D(
-            f"{save_fpath}.{file_ext}", args=args)
+        genome_visualizer.visualize_genomes2D(save_fpath=f"{save_fpath}.{file_ext}", args=args)
 
     elif visualization_type == '3D':
 
@@ -98,8 +103,13 @@ def main(data_source_path):
         os.makedirs("vis_output", exist_ok=True)
 
         # do 3D visualizations
-        genome_data.visualize_genomes3D(
-            f"{save_fpath}.gif", args=args)
+        genome_visualizer.visualize_genomes3D(f"{save_fpath}.gif", args=args)
+
+    elif visualization_type == 'microscope':
+
+        # do the interactive visualization
+        genome_visualizer.visualize_genomes_microscope(args=args, genome_data_dict=genome_data_dict)
+
     else:
         raise ValueError(f"visualization_type: \'{visualization_type}\' not recognized.")
 

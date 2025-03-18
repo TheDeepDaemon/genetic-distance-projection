@@ -2,13 +2,11 @@ import json
 import numpy as np
 from .dim_reduction import (
     reduce_using_neural_net, reduce_using_simple_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds)
-from .visualization import calc_colors_by_fitness, calc_colors_by_group, visualize_genomes2D, visualize_genomes3D
 from enum import Enum
 import zipfile
 import io
 import os
 import networkx as nx
-from matplotlib.patches import Patch
 
 
 class ReductionType(Enum):
@@ -51,8 +49,6 @@ class GenomeData:
 
         self.genome_ids = None
         self.relations = None
-        self.genome_colors = None
-        self.legend_handles = None
 
     def init_data(self, data):
         """
@@ -110,7 +106,8 @@ class GenomeData:
         """
         Convert this data_storage to a networkx graph that is usable.
 
-        Returns: A networkx graph of the relations between the genomes.
+        Returns:
+            A networkx graph of the relations between the genomes.
         """
         graph = nx.DiGraph()
         for genome_id in self.genome_ids:
@@ -240,33 +237,6 @@ class GenomeData:
 
         raise ValueError(f"Reduction type not recognized: {reduction_type}")
 
-    def set_colors_by_fitness(self, fitness_values, col_low, col_high):
-        """
-        Set the colors of the genomes based on fitness values.
-
-        Args:
-            fitness_values: A dict mapping genome ID to fitness.
-            col_low: The color indicating low fitness.
-            col_high: The color indicating high fitness.
-        """
-
-        self.legend_handles = [
-            Patch(color=col_low, label='Low Loss'),
-            Patch(color=col_high, label='High Loss'),
-        ]
-
-        self.genome_colors = calc_colors_by_fitness(
-            fitness_values=fitness_values, col_low=col_low, col_high=col_high)
-
-    def set_genome_colors_by_group(self, genome_groups):
-        """
-        Set the colors of the genomes based on what group they belong to.
-
-        Args:
-            genome_groups: The group number for each genome.
-        """
-        self.genome_colors = calc_colors_by_group(genome_groups=genome_groups)
-
     def set_genome_colors(self, genome_colors: dict):
         """
         Set the colors of all the genomes.
@@ -346,56 +316,33 @@ class GenomeData:
 
         return packaged_args
 
-    def visualize_genomes2D(
-            self,
-            save_fpath: str,
-            args):
+    def get_positions(self):
         """
-        Perform 2D visualizations, save to an image file.
+        Constructs a dictionary containing the position for each genome ID.
+
+        Returns:
+            The dictionary of positions.
+        """
+        return {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
+
+    def get_positions_with_gid(self, genome_id_axis=0):
+        """
+        Constructs a dictionary containing the position for each genome ID, where a 3rd axis is the genome ID.
 
         Args:
-            save_fpath: The filepath to save it to.
-            args: Program arguments and their keywords.
+            genome_id_axis: The axis that genome ID should be.
+
+        Returns:
+            The dictionary of 3D positions.
         """
-
-        if self.genome_colors is None:
-            print("Genome colors are not set!")
-            return
-
-        if self.reduction_type_used is not None:
-
-            positions = {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
-
-            visualize_genomes2D(args=self.package_args(
-                args, positions=positions, save_fpath=save_fpath, graph=self.make_graph()))
+        if genome_id_axis==0:
+            return {self.index_to_id[i]: (self.index_to_id[i], x, y) for i, (x, y) in enumerate(self.position_data)}
+        elif genome_id_axis==1:
+            return {self.index_to_id[i]: (x, self.index_to_id[i], y) for i, (x, y) in enumerate(self.position_data)}
+        elif genome_id_axis==2:
+            return {self.index_to_id[i]: (x, y, self.index_to_id[i]) for i, (x, y) in enumerate(self.position_data)}
         else:
-            print("You must reduce the genomes to positions before displaying.")
-
-    def visualize_genomes3D(
-            self,
-            save_fpath: str,
-            args: dict):
-        """
-        Perform the 3D visualization, save to a GIF.
-
-        Args:
-            save_fpath: The filepath to save it to.
-            args: Program arguments and their keywords.
-        """
-
-        if self.genome_colors is None:
-            print("Genome colors are not set!")
-            return
-
-        if self.reduction_type_used is not None:
-
-            positions = {
-                self.index_to_id[i]: (self.index_to_id[i], x, y) for i, (x, y) in enumerate(self.position_data)}
-
-            visualize_genomes3D(args=self.package_args(
-                args, positions=positions, save_fpath=save_fpath, graph=self.make_graph()))
-        else:
-            print("You must reduce the genomes to positions before displaying.")
+            raise ValueError(f"Axis: {genome_id_axis} is out of bounds.")
 
 
 def join_genomes(genome_data1: GenomeData, genome_data2: GenomeData):
@@ -406,7 +353,8 @@ def join_genomes(genome_data1: GenomeData, genome_data2: GenomeData):
         genome_data1: The first genome data_storage object.
         genome_data2: The second genome data_storage object.
 
-    Returns: The combined genome data_storage object.
+    Returns:
+        The combined genome data_storage object.
     """
 
     # the output data_storage matrix type should match both

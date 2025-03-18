@@ -125,4 +125,8 @@ def make_nn_graph(single_genome_data, x_spacing, y_spacing):
 
     positions = {node: (x_positions[node], y_positions[node]) for node in graph.nodes}
 
+    # add in the recurrent edges afterwards
+    for edge_data in single_genome_data["recurrent_edges"]:
+        graph.add_edge(edge_data['in'], edge_data['on'])
+
     return graph, positions

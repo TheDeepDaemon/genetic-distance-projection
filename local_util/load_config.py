@@ -19,8 +19,8 @@ def _load_program_arguments_from_file(fpath):
         for keyword, options in mc_args_yaml.items():
             selected_option = None
             for option in options:
-                if option["active"]:
-                    selected_option = option["name"]
+                if option["selected"]:
+                    selected_option = option["option"]
                     break
             args[keyword] = selected_option
 

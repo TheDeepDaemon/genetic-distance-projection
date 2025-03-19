@@ -14,6 +14,11 @@ def main(data_source_path):
         # where to get the data_storage from
         data_source_path = args["data_source_path"]
 
+        if data_source_path is None:
+            error_message = ("\'data_source_path\' is not set. "
+                             "You must set the \'data_source_path\' variable before continuing.")
+            raise ValueError(error_message)
+
     # data_storage run type
     data_source_type = args["run_type"]
 

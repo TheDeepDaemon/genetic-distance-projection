@@ -17,33 +17,41 @@ args:
   transform_to_01: true
   vis_image_type: "pdf"
 
+
 multiple_choice_args:
 
   reduction_type:
-    - name: pca
-      active: true
-    - name: svd
-      active: false
-    - name: mds
-      active: false
-    - name: nn
-      active: false
-    - name: snn
-      active: false
+    - option: pca
+      selected: true
+
+    - option: svd
+      selected: false
+
+    - option: mds
+      selected: false
+
+    - option: nn
+      selected: false
+
+    - option: snn
+      selected: false
 
   run_type:
-    - name: high-crossover
-      active: true
-    - name: low-crossover
-      active: false
-    - name: no-repopulation
-      active: false
+    - option: high-crossover
+      selected: true
+
+    - option: low-crossover
+      selected: false
+
+    - option: no-repopulation
+      selected: false
 
   visualization_type:
-    - name: "2D"
-      active: true
-    - name: "3D"
-      active: false
-    - name: "microscope"
-      active: false
+    - option: "2D"
+      selected: true
 
+    - option: "3D"
+      selected: false
+
+    - option: "microscope"
+      selected: false

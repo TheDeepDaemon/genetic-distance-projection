@@ -7,6 +7,7 @@ import zipfile
 import io
 import os
 import networkx as nx
+import datetime
 
 
 class ReductionType(Enum):
@@ -133,7 +134,7 @@ class GenomeData:
 
         self.genome_fitnesses = genome_fitnesses
 
-    def save_data(self, zip_fpath: str):
+    def save_data(self, zip_fpath: str, **kwargs):
         """
         Save all data_storage to files in the specified directory.
 
@@ -155,10 +156,26 @@ class GenomeData:
                     zipf.writestr(f"{k}.npy", arr_buffer.getvalue())
 
             rt = str(int(self.reduction_type_used.value)) if self.reduction_type_used is not None else None
+
+            dt = datetime.datetime.now()
+
             info = {
-                "reduction_type": rt}
+                "reduction_type": rt,
+                "date_time": dt.isoformat()
+            }
+
+            info.update(kwargs)
 
             zipf.writestr("info.json", json.dumps(info))
+
+            print(f"Genome data saved to {zip_fpath}")
+
+    @staticmethod
+    def _get_info(zipf):
+        info_fname = "info.json"
+        if info_fname in zipf.namelist():
+            with zipf.open(info_fname) as f:
+                return json.loads(f.read().decode())
 
     def load_data(self, zip_fpath: str):
         """
@@ -207,13 +224,79 @@ class GenomeData:
                             # set the attribute based on the filename
                             setattr(self, field_name, arr)
 
-            info_fname = "info.json"
-            if info_fname in zipf.namelist():
-                with zipf.open(info_fname) as f:
-                    info = json.loads(f.read().decode())
-                    rt = info["reduction_type"]
-                    if rt is not None:
-                        self.reduction_type_used = ReductionType(int(rt))
+            info = GenomeData._get_info(zipf)
+            rt = info["reduction_type"]
+            if rt is not None:
+                self.reduction_type_used = ReductionType(int(rt))
+
+            print(f"Genome data loaded from {zip_fpath}")
+
+    @staticmethod
+    def get_save_datetime(zip_fpath: str):
+        """
+        Get the date and time that the genome data object was saved.
+
+        Args:
+            zip_fpath: The path of the save data zip file.
+
+        Returns:
+            The datetime object with the date and time it was saved at.
+        """
+        with zipfile.ZipFile(zip_fpath, "r") as zipf:
+            info = GenomeData._get_info(zipf)
+            return datetime.datetime.fromisoformat(info["date_time"])
+
+    @staticmethod
+    def get_info(zip_fpath: str):
+        """
+        Get the date and time that the genome data object was saved.
+
+        Args:
+            zip_fpath: The path of the save data zip file.
+
+        Returns:
+            The datetime object with the date and time it was saved at.
+        """
+        with zipfile.ZipFile(zip_fpath, "r") as zipf:
+            return GenomeData._get_info(zipf)
+
+    @staticmethod
+    def info_matches(zip_fpath: str, kwargs: dict):
+        info = GenomeData.get_info(zip_fpath)
+        for kw, v in kwargs.items():
+            if info[kw] != v:
+                return False
+        return True
+
+    @staticmethod
+    def find_latest_genome_data(data_dir, **kwargs):
+        """
+        Find which genome data was created last.
+
+        Args:
+            data_dir: The data directory.
+
+        Returns:
+            The filename of the latest genome data in that directory.
+        """
+        if "reduction_type" in kwargs:
+            for k, v in GenomeData._REDUCTION_TYPE_OPTIONS.items():
+                if kwargs["reduction_type"] in v:
+                    kwargs["reduction_type"] = str(int(k.value))
+
+        datetimes = dict()
+
+        for fname in os.listdir(data_dir):
+            if fname != ".DS_Store":
+                zip_fpath = os.path.join(data_dir, fname)
+                if GenomeData.info_matches(zip_fpath, kwargs):
+                    datetimes[fname] = GenomeData.get_save_datetime(zip_fpath)
+
+        if len(datetimes) > 0:
+            return max(datetimes, key=datetimes.get)
+        else:
+            raise FileNotFoundError(f"The \'{data_dir}\' directory doesn't contain available genome data saves "
+                                    f"with matching keyword arguments.")
 
     def reduce_genome(self, reduction_type: str, args: dict=None):
         """

@@ -1,6 +1,5 @@
 from gdp import GenomeData, GenomeVisualizer
-from local_util.load_config import load_program_arguments
-from local_util.load_examm_data import load_data
+from local_util import load_program_arguments, load_data
 import os
 import datetime
 import argparse
@@ -39,8 +38,8 @@ def get_best_genome(genome_data_list):
 
 def main(data_source_path):
 
-    matplotlib.rcParams['pdf.fonttype'] = 42
-    matplotlib.rcParams['ps.fonttype'] = 42
+    # data directory name
+    reduced_data_dir = "reduced_genome_data"
 
     # load the program arguments
     args = load_program_arguments()
@@ -52,21 +51,22 @@ def main(data_source_path):
     # what kind of dimensionality reduction to do
     reduction_type = args["reduction_type"]
 
-    # data_storage run type
-    data_source_type = args["run_type"]
+    # data storage run type
+    run_type = args["run_type"]
 
-    # where to store the genome data_storage
-    load_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
+    # find the genome data to use
+    load_fname = GenomeData.find_latest_genome_data(
+        data_dir=reduced_data_dir, run_type=run_type, reduction_type=reduction_type)
 
-    # load the source data_storage (from the EXAMM run)
-    genome_data_dict = load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json")
+    # load the source data storage (from the EXAMM run)
+    genome_data_dict = load_data(data_filepath=f"{os.path.join(data_source_path, run_type)}.json")
     genome_data_list = list(genome_data_dict.values())
 
-    # create the genome data_storage class to be used for visuals
+    # create the genome data storage class to be used for visuals
     genome_data = GenomeData()
 
-    # load the processed data_storage from the directory
-    genome_data.load_data(zip_fpath=load_fpath)
+    # load the processed data storage from the directory
+    genome_data.load_data(zip_fpath=os.path.join(reduced_data_dir, load_fname))
 
     if args["transform_to_01"]:
         best_genome = get_best_genome(genome_data_list)
@@ -81,7 +81,7 @@ def main(data_source_path):
 
     save_fpath = get_save_fpath(
         reduction_type=reduction_type,
-        data_source_type=data_source_type,
+        data_source_type=run_type,
         add_timestamp=args["add_timestamp_to_vis"])
 
     # get the type of visualization to perform: 2D or 3D
@@ -115,6 +115,7 @@ def main(data_source_path):
 
 
 if __name__=="__main__":
+
     parser = argparse.ArgumentParser(description="Visualize the genome data.")
 
     parser.add_argument(
@@ -126,5 +127,9 @@ if __name__=="__main__":
     )
 
     args = parser.parse_args()
+
+    # set the fonts for matplotlib
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
 
     main(args.data_source_path)

@@ -167,6 +167,7 @@ cython_debug/
 .pypirc
 
 config/config.yaml
-data_storage/*
+pre_loaded_genome_data/*
+reduced_genome_data/*
 vis_output/*
 vis_archive/*

@@ -1,11 +1,13 @@
 from gdp import GenomeData, join_genomes
-from local_util.load_config import load_program_arguments
-from local_util.load_examm_data import load_data
+from local_util import load_program_arguments, load_data, get_numbered_unique_fpath
 import os
 import argparse
 
 
 def main(data_source_path):
+
+    # data directory name
+    pre_load_data_dir = "pre_loaded_genome_data"
 
     # load the program arguments
     args = load_program_arguments()
@@ -20,13 +22,14 @@ def main(data_source_path):
             raise ValueError(error_message)
 
     # data_storage run type
-    data_source_type = args["run_type"]
+    run_type = args["run_type"]
 
     # where to store the genome data_storage
-    save_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"
+    save_fpath = f"{pre_load_data_dir}/{run_type}_genome_data.zip"
+    save_fpath = get_numbered_unique_fpath(save_fpath)
 
     # load the source data_storage (from the EXAMM run)
-    genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, data_source_type)}.json").values())
+    genome_data_list = list(load_data(data_filepath=f"{os.path.join(data_source_path, run_type)}.json").values())
 
     node_genes = {
         data_entry["generation_number"]: [gn["n"] for gn in data_entry["nodes"]]
@@ -65,13 +68,10 @@ def main(data_source_path):
     genome_data.set_genome_fitnesses(fitnesses=fitnesses)
 
     # make sure this directory exists, so we can output to it
-    os.makedirs("data_storage", exist_ok=True)
+    os.makedirs(pre_load_data_dir, exist_ok=True)
 
     # save the data_storage and reduced data_storage
-    genome_data.save_data(zip_fpath=save_fpath)
-
-    if os.path.exists(save_fpath):
-        print("Genome data saved.")
+    genome_data.save_data(zip_fpath=save_fpath, run_type=run_type)
 
 
 if __name__=="__main__":

@@ -1,8 +1,13 @@
 from gdp import GenomeData
-from local_util.load_config import load_program_arguments
+from local_util import load_program_arguments, get_numbered_unique_fpath
+import os
 
 
 def main():
+
+    # data directory names
+    pre_load_data_dir = "pre_loaded_genome_data"
+    reduced_data_dir = "reduced_genome_data"
 
     # load the program arguments
     args = load_program_arguments()
@@ -11,25 +16,28 @@ def main():
     reduction_type = args["reduction_type"]
 
     # data_storage run type
-    data_source_type = args["run_type"]
+    run_type = args["run_type"]
+
+    # find the preload to use
+    genome_data_fname = GenomeData.find_latest_genome_data(
+        data_dir=pre_load_data_dir, run_type=args["run_type"])
 
     # where to store the genome data_storage
-    load_fpath = f"data_storage/{data_source_type}_genome_data--pre-loaded.zip"
-
-    # where to store the genome data_storage
-    save_fpath = f"data_storage/{reduction_type}-{data_source_type}_genome_data.zip"
+    os.makedirs(reduced_data_dir, exist_ok=True)
+    save_fpath = f"{reduced_data_dir}/{reduction_type}-{run_type}_genome_data.zip"
+    save_fpath = get_numbered_unique_fpath(save_fpath)
 
     # create genome data_storage object
     genome_data = GenomeData()
 
     # load the pre-loaded data_storage
-    genome_data.load_data(zip_fpath=load_fpath)
+    genome_data.load_data(zip_fpath=os.path.join(pre_load_data_dir, genome_data_fname))
 
     # do reduction
     genome_data.reduce_genome(reduction_type=reduction_type, args=args)
 
     # save the data_storage and reduced data_storage
-    genome_data.save_data(zip_fpath=save_fpath)
+    genome_data.save_data(zip_fpath=save_fpath, run_type=run_type)
 
 
 if __name__=="__main__":

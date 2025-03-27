@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from .genome_data_collector import GenomeDataCollector
 from .dim_reduction import (
     reduce_using_neural_net, reduce_using_simple_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds)
 from enum import Enum
@@ -8,6 +9,14 @@ import io
 import os
 import networkx as nx
 import datetime
+
+
+class IdentifierMismatchError(Exception):
+    def __init__(self, expected, received):
+        self.expected = expected
+        self.received = received
+        message = f"Identifying argument mismatch:\nExpected: {expected}\nReceived: {received}"
+        super().__init__(message)
 
 
 class ReductionType(Enum):
@@ -51,49 +60,18 @@ class GenomeData:
         self.genome_ids = None
         self.relations = None
 
-    def init_data(self, data):
+    def init_data(self, genome_data_collector: GenomeDataCollector):
         """
         Load the genome data_storage from a dictionary.
 
         Args:
-            data: A dictionary containing the genome values corresponding to each ID.
+            genome_data_collector: The object that has been used to collect all genome data.
         """
 
-        if not isinstance(data, dict):
-            raise TypeError(f"Input to GenomeData class must be a dictionary.")
+        genes_matrix, genome_ids, gene_keys = genome_data_collector.convert_to_matrix()
 
-        values = data.values()
-
-        if all(isinstance(v, list) and all(isinstance(x, int) for x in v) for v in values):
-
-            for k in data:
-                inner_list = data[k]
-                inner_dict = dict()
-                for val in inner_list:
-                    inner_dict[val] = True
-
-                data[k] = inner_dict
-
-        elif not all(isinstance(v, dict) for v in values):
-            raise TypeError("Dictionary contains mixed types or invalid elements.")
-
-        data_keys = list(set(data.keys()))
-        data_keys.sort()
-        self.index_to_id = np.array(data_keys, dtype=int)
-        id_to_index = self.get_id_to_index()
-
-        inner_keys = list({key for inner_dict in data.values() for key in inner_dict.keys()})
-        inner_key_to_index = {k: i for i, k in enumerate(inner_keys)}
-
-        genome_data_mat = np.zeros((len(id_to_index), len(inner_keys)), dtype=np.float32)
-
-        for outer_key, inner_dict in data.items():
-            for inner_key, val in inner_dict.items():
-                outer_idx = id_to_index[outer_key]
-                inner_idx = inner_key_to_index[inner_key]
-                genome_data_mat[outer_idx, inner_idx] = val
-
-        self.genome_data_mat = genome_data_mat
+        self.genome_data_mat = genes_matrix.astype(dtype=np.float32)
+        self.index_to_id = np.array(genome_ids, dtype=np.int64)
         self.position_data = None
 
     def get_id_to_index(self):
@@ -134,12 +112,13 @@ class GenomeData:
 
         self.genome_fitnesses = genome_fitnesses
 
-    def save_data(self, zip_fpath: str, **kwargs):
+    def save_data(self, zip_fpath: str, identifying_args: dict=None):
         """
         Save all data_storage to files in the specified directory.
 
         Args:
             zip_fpath: The zip file to save to.
+            identifying_args: Keywords and values used to identify the options used for the genome data.
         """
 
         with zipfile.ZipFile(zip_fpath, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
@@ -161,10 +140,9 @@ class GenomeData:
 
             info = {
                 "reduction_type": rt,
-                "date_time": dt.isoformat()
+                "date_time": dt.isoformat(),
+                "identifying_args": identifying_args
             }
-
-            info.update(kwargs)
 
             zipf.writestr("info.json", json.dumps(info))
 
@@ -175,17 +153,29 @@ class GenomeData:
         info_fname = "info.json"
         if info_fname in zipf.namelist():
             with zipf.open(info_fname) as f:
-                return json.loads(f.read().decode())
+                return json.loads(f.read().decode('utf-8'))
 
-    def load_data(self, zip_fpath: str):
+    def load_data(self, zip_fpath: str, identifying_args: dict):
         """
         Load all data_storage to files from the specified directory.
 
         Args:
             zip_fpath: The directory to load from.
+            identifying_args: Keywords and values used to identify the options used for the genome data.
         """
 
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
+
+            info = GenomeData._get_info(zipf)
+
+            loaded_id_args = info["identifying_args"]
+
+            if loaded_id_args != identifying_args:
+                raise IdentifierMismatchError(identifying_args, loaded_id_args)
+
+            rt = info["reduction_type"]
+            if rt is not None:
+                self.reduction_type_used = ReductionType(int(rt))
 
             # iterate through files in the zip file
             for listed_name in zipf.namelist():
@@ -224,11 +214,6 @@ class GenomeData:
                             # set the attribute based on the filename
                             setattr(self, field_name, arr)
 
-            info = GenomeData._get_info(zipf)
-            rt = info["reduction_type"]
-            if rt is not None:
-                self.reduction_type_used = ReductionType(int(rt))
-
             print(f"Genome data loaded from {zip_fpath}")
 
     @staticmethod
@@ -261,35 +246,34 @@ class GenomeData:
             return GenomeData._get_info(zipf)
 
     @staticmethod
-    def info_matches(zip_fpath: str, kwargs: dict):
+    def info_matches(zip_fpath: str, identifying_args: dict):
         info = GenomeData.get_info(zip_fpath)
-        for kw, v in kwargs.items():
-            if info[kw] != v:
-                return False
-        return True
+        return info["identifying_args"] == identifying_args
 
     @staticmethod
-    def find_latest_genome_data(data_dir, **kwargs):
+    def find_latest_genome_data(data_dir, identifying_args: dict=None):
         """
         Find which genome data was created last.
 
         Args:
             data_dir: The data directory.
+            identifying_args: Keywords and values used to identify the options used for the genome data.
 
         Returns:
             The filename of the latest genome data in that directory.
         """
-        if "reduction_type" in kwargs:
-            for k, v in GenomeData._REDUCTION_TYPE_OPTIONS.items():
-                if kwargs["reduction_type"] in v:
-                    kwargs["reduction_type"] = str(int(k.value))
 
         datetimes = dict()
 
         for fname in os.listdir(data_dir):
-            if fname != ".DS_Store":
+            _, f_ext = os.path.splitext(fname)
+
+            # if it is a zip file
+            if f_ext == ".zip":
                 zip_fpath = os.path.join(data_dir, fname)
-                if GenomeData.info_matches(zip_fpath, kwargs):
+
+                # make sure the info matches, then consider it
+                if GenomeData.info_matches(zip_fpath=zip_fpath, identifying_args=identifying_args):
                     datetimes[fname] = GenomeData.get_save_datetime(zip_fpath)
 
         if len(datetimes) > 0:
@@ -473,3 +457,15 @@ def join_genomes(genome_data1: GenomeData, genome_data2: GenomeData):
     combined_genome_data.index_to_id = combined_index_to_id
 
     return combined_genome_data
+
+
+def join_genomes_list(genome_data_objs: list):
+    if len(genome_data_objs) > 0:
+        genome_data = join_genomes(genome_data_objs[0], genome_data_objs[1])
+
+        for i in range(2, len(genome_data_objs)):
+            genome_data = join_genomes(genome_data, genome_data_objs[i])
+
+        return genome_data
+    elif len(genome_data_objs) == 1:
+        return genome_data_objs[0]

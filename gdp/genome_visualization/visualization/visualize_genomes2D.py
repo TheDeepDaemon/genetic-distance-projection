@@ -16,10 +16,11 @@ def visualize_genomes2D(
         legend_handles: The legend handles to use for the plot.
     """
 
-    genome_ids_set = set(genome_data.genome_ids)
+    genome_ids_set = set([int(gid) for gid in genome_data.genome_ids])
     positions = genome_data.get_positions()
+    _pos_keys = set([int(k) for k in positions.keys()])
 
-    assert (genome_ids_set == set(positions.keys()))
+    assert (genome_ids_set == _pos_keys)
     assert (genome_ids_set == set(genome_colors.keys()))
 
     node_size = args["node_size"]

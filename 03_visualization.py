@@ -1,5 +1,5 @@
-from gdp import GenomeData, GenomeVisualizer
-from local_util import load_program_arguments, load_data
+from gdp import GenomeData, GenomeVisualizer, GenomeDataCollector
+from local_util import load_program_arguments, load_data, get_subset
 import os
 import datetime
 import argparse
@@ -21,13 +21,11 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     return save_fpath
 
 
-def get_best_genome(genome_data_list):
+def get_best_genome(fitnesses):
     global_best_id = None
     best_fitness = float('inf')
 
-    for entry in genome_data_list:
-        genome_id = entry["generation_number"]
-        genome_fitness = entry["fitness"]
+    for genome_id, genome_fitness in fitnesses.items():
 
         if genome_fitness < best_fitness:
             global_best_id = genome_id
@@ -54,29 +52,41 @@ def main(data_source_path):
     # data storage run type
     run_type = args["run_type"]
 
+    identifying_keys = [
+        "reduction_type",
+        "run_type",
+        "use_node_gene_data",
+        "use_edge_gene_data",
+        "use_edge_weights_data",
+        "use_recurrent_edge_gene_data",
+        "use_recurrent_edge_weights_data"
+    ]
+
     # find the genome data to use
     load_fname = GenomeData.find_latest_genome_data(
-        data_dir=reduced_data_dir, run_type=run_type, reduction_type=reduction_type)
+        data_dir=reduced_data_dir, identifying_args=get_subset(args, identifying_keys))
 
-    # load the source data storage (from the EXAMM run)
-    genome_data_dict = load_data(data_filepath=f"{os.path.join(data_source_path, run_type)}.json")
-    genome_data_list = list(genome_data_dict.values())
+    data_collector = GenomeDataCollector()
+    data_collector.load(f"{os.path.join(data_source_path, run_type)}.zip")
 
     # create the genome data storage class to be used for visuals
     genome_data = GenomeData()
 
     # load the processed data storage from the directory
-    genome_data.load_data(zip_fpath=os.path.join(reduced_data_dir, load_fname))
+    genome_data.load_data(
+        zip_fpath=os.path.join(reduced_data_dir, load_fname),
+        identifying_args=get_subset(args, identifying_keys))
 
     if args["transform_to_01"]:
-        best_genome = get_best_genome(genome_data_list)
-        genome_data.transform_positions01(best_genome_id=best_genome, root_genome_id=1)
+        fitnesses = data_collector.get_genome_attribute_by_key("fitness")
+        best_genome = get_best_genome(fitnesses)
+        genome_data.transform_positions01(best_genome_id=best_genome)
 
     # create the visualizer
     genome_visualizer = GenomeVisualizer(genome_data=genome_data)
 
     # set colors
-    genome_groups = {data_entry["generation_number"]: data_entry["group"] for data_entry in genome_data_list}
+    genome_groups = data_collector.get_genome_attribute_by_key("group")
     genome_visualizer.set_genome_colors_by_group(genome_groups)
 
     save_fpath = get_save_fpath(
@@ -108,7 +118,8 @@ def main(data_source_path):
     elif visualization_type == 'microscope':
 
         # do the interactive visualization
-        genome_visualizer.visualize_genomes_microscope(args=args, genome_data_dict=genome_data_dict)
+        #genome_visualizer.visualize_genomes_microscope(args=args, genome_data_dict=genome_data_dict)
+        pass
 
     else:
         raise ValueError(f"visualization_type: \'{visualization_type}\' not recognized.")

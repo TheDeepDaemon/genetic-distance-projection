@@ -16,6 +16,11 @@ args:
   add_timestamp_to_vis: true
   transform_to_01: true
   vis_image_type: "pdf"
+  use_node_gene_data: true
+  use_edge_gene_data: true
+  use_edge_weights_data: true
+  use_recurrent_edge_gene_data: true
+  use_recurrent_edge_weights_data: true
 
 
 multiple_choice_args:
@@ -37,14 +42,20 @@ multiple_choice_args:
       selected: false
 
   run_type:
-    - option: high-crossover
-      selected: true
-
-    - option: low-crossover
+    - option: evoviz_examples_neat_low_speciation_10epochs
       selected: false
-
+    - option: evoviz_examples_neat_low_speciation_1epoch
+      selected: false
+    - option: evoviz_examples_no_repop_10epochs
+      selected: false
+    - option: evoviz_examples_no_repop_1epoch
+      selected: false
+    - option: evoviz_examples_repop_10epochs
+      selected: false
+    - option: evoviz_examples_repop_1epoch
+      selected: false
     - option: no-repopulation
-      selected: false
+      selected: true
 
   visualization_type:
     - option: "2D"

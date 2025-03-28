@@ -4,7 +4,7 @@ import os
 import argparse
 
 
-def pre_load_from_examm(data_source_path):
+def main(data_source_path):
 
     # data directory name
     pre_load_data_dir = "pre_loaded_genome_data"
@@ -103,18 +103,6 @@ def pre_load_from_examm(data_source_path):
     genome_data.save_data(
         zip_fpath=save_fpath, identifying_args=get_subset(args, identifying_keys))
 
-
-def pre_load_from_other(data_source_path):
-    raise NotImplementedError("Not implemented yet.")
-
-
-def main(data_source_path, from_examm_data):
-    if from_examm_data:
-        pre_load_from_examm(data_source_path)
-    else:
-        pre_load_from_other(data_source_path)
-
-
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Pre-load the data to streamline further processing.")
 
@@ -128,4 +116,4 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    main(args.data_source_path, True)
+    main(args.data_source_path)

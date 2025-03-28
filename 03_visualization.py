@@ -1,5 +1,5 @@
 from gdp import GenomeData, GenomeVisualizer, GenomeDataCollector
-from local_util import load_program_arguments, load_data, get_subset
+from local_util import load_program_arguments, get_subset
 import os
 import datetime
 import argparse

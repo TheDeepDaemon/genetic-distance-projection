@@ -1,5 +1,5 @@
-from gdp import GenomeData, join_genomes, join_genomes_list, GenomeDataCollector
-from local_util import load_program_arguments, load_data, get_numbered_unique_fpath, get_subset
+from gdp import GenomeData, GenomeDataCollector
+from local_util import load_program_arguments, get_numbered_unique_fpath, get_subset
 import os
 import argparse
 

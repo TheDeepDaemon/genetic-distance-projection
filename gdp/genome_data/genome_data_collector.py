@@ -208,5 +208,17 @@ class GenomeDataCollector:
             for gene_key, gene_value in new_genes.items():
                 self.set_gene_value(genome_id=genome_id, gene_key=gene_key, gene_value=gene_value)
 
-    def get_genome_attribute_by_key(self, key):
-        return {genome_id: info[key] for genome_id, info in self._population_info.items()}
+    def get_genome_attribute_by_key(self, *args):
+        if len(args) == 1:
+            key = args[0]
+            return {genome_id: info[key] for genome_id, info in self._population_info.items()}
+        elif len(args) == 2:
+            outer_key, inner_key = args
+            result = dict()
+            for genome_id, info in self._population_info.items():
+                inner_list = []
+                for item in info[outer_key]:
+                    inner_list.append(item[inner_key])
+
+                result[genome_id] = inner_list
+            return result

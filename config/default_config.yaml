@@ -42,19 +42,7 @@ multiple_choice_args:
       selected: false
 
   run_type:
-    - option: evoviz_examples_neat_low_speciation_10epochs
-      selected: false
-    - option: evoviz_examples_neat_low_speciation_1epoch
-      selected: false
-    - option: evoviz_examples_no_repop_10epochs
-      selected: false
-    - option: evoviz_examples_no_repop_1epoch
-      selected: false
-    - option: evoviz_examples_repop_10epochs
-      selected: false
-    - option: evoviz_examples_repop_1epoch
-      selected: false
-    - option: no-repopulation
+    - option: example_option
       selected: true
 
   visualization_type:

@@ -27,30 +27,30 @@ multiple_choice_args:
 
   reduction_type:
     - option: pca
-      selected: true
+      selected: 1
 
     - option: svd
-      selected: false
+      selected: 0
 
     - option: mds
-      selected: false
+      selected: 0
 
     - option: nn
-      selected: false
+      selected: 0
 
     - option: snn
-      selected: false
+      selected: 0
 
   run_type:
     - option: example_option
-      selected: true
+      selected: 1
 
   visualization_type:
     - option: "2D"
-      selected: true
+      selected: 1
 
     - option: "3D"
-      selected: false
+      selected: 0
 
     - option: "microscope"
-      selected: false
+      selected: 0

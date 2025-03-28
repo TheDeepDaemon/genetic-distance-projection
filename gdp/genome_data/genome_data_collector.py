@@ -109,7 +109,9 @@ class GenomeDataCollector:
                 self._population_info = {int(k): v for k, v in population_info.items()}
 
     def get_unique_genome_id_list(self):
-        return list(set(self._population.keys()))
+        pop_keys = self._population.keys()
+        assert (pop_keys == self._population_info.keys())
+        return list(pop_keys)
 
     def get_unique_gene_keys(self):
         """
@@ -222,3 +224,41 @@ class GenomeDataCollector:
 
                 result[genome_id] = inner_list
             return result
+        else:
+            raise TypeError(f"get_genome_attribute_by_key expected 1 or 2 arguments, got {len(args)}")
+
+    def get_global_best(self, fitness_key="fitness"):
+
+        genome_id_list = self.get_unique_genome_id_list()
+        genome_id_list.sort()
+
+        fitnesses = self.get_genome_attribute_by_key(fitness_key)
+
+        current_best_genome = None
+        current_best_fitness = float('inf')
+
+        for genome_id in genome_id_list:
+            gf = fitnesses[genome_id]
+            if gf < current_best_fitness:
+                current_best_fitness = gf
+                current_best_genome = genome_id
+
+        return current_best_genome
+
+    def get_line_of_succession(self, fitness_key="fitness"):
+        line_of_succession = []
+
+        genome_id_list = self.get_unique_genome_id_list()
+        genome_id_list.sort()
+
+        fitnesses = self.get_genome_attribute_by_key(fitness_key)
+
+        current_best_fitness = float('inf')
+
+        for genome_id in genome_id_list:
+            gf = fitnesses[genome_id]
+            if gf < current_best_fitness:
+                current_best_fitness = gf
+                line_of_succession.append(genome_id)
+
+        return line_of_succession

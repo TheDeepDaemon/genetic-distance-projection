@@ -21,19 +21,6 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     return save_fpath
 
 
-def get_best_genome(fitnesses):
-    global_best_id = None
-    best_fitness = float('inf')
-
-    for genome_id, genome_fitness in fitnesses.items():
-
-        if genome_fitness < best_fitness:
-            global_best_id = genome_id
-            best_fitness = genome_fitness
-
-    return global_best_id
-
-
 def main(data_source_path):
 
     # data directory name
@@ -78,8 +65,7 @@ def main(data_source_path):
         identifying_args=get_subset(args, identifying_keys))
 
     if args["transform_to_01"]:
-        fitnesses = data_collector.get_genome_attribute_by_key("fitness")
-        best_genome = get_best_genome(fitnesses)
+        best_genome = data_collector.get_global_best()
         genome_data.transform_positions01(best_genome_id=best_genome)
 
     # create the visualizer

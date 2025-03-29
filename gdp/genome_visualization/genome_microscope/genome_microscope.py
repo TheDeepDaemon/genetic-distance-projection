@@ -5,6 +5,8 @@ import numpy as np
 import math
 import matplotlib.colors as mcolors
 from matplotlib.patches import Patch
+
+from ... import GenomeDataCollector
 from ...genome_data import GenomeData
 
 
@@ -14,8 +16,13 @@ class GenomeMicroscope:
             self,
             args: dict,
             genome_data: GenomeData,
-            genome_colors,
-            genome_data_dict: dict):
+            genome_data_collector: GenomeDataCollector,
+            genome_colors):
+
+        self.genome_data_collector = genome_data_collector
+
+        neuron_types = genome_data_collector.get_genome_attribute_by_key("nodes", "type")
+        unique_neuron_types = {nt for g in neuron_types.values() for nt in g}
 
         # init variables
         self.genome_node_size = args["node_size"]
@@ -31,15 +38,8 @@ class GenomeMicroscope:
         self.genome_node_radius = (self.genome_node_size / math.pi)**(1/2)
 
         # ___ ___ ___ ___
-        # set all genome data
-        self.genome_data_dict = genome_data_dict
-
-        # ___ ___ ___ ___
         # init the color map
         tableau_colors = list(mcolors.TABLEAU_COLORS.values())
-
-        unique_neuron_types = {
-            neuron["type"] for g in self.genome_data_dict.values() for neuron in g["nodes"]}
 
         indices = np.arange(len(unique_neuron_types))
 
@@ -121,9 +121,21 @@ class GenomeMicroscope:
 
         if selected_node != self.prev_selected_node:
 
-            this_genome_data = self.genome_data_dict[selected_node]
+            nodes_info = self.genome_data_collector.get_single_attribute(selected_node, "nodes")
+            nodes = [node["n"] for node in nodes_info]
 
-            subgraph, positions = make_nn_graph(this_genome_data, self.x_spacing, self.y_spacing)
+            edges_info = self.genome_data_collector.get_single_attribute(selected_node, "edges")
+            edges = [(edge["in"], edge["on"]) for edge in edges_info]
+
+            redges_info = self.genome_data_collector.get_single_attribute(selected_node, "recurrent_edges")
+            recurrent_edges = [(edge["in"], edge["on"]) for edge in redges_info]
+
+            subgraph, positions = make_nn_graph(
+                nodes,
+                edges,
+                recurrent_edges,
+                self.x_spacing,
+                self.y_spacing)
 
             sub_ax = self.fig.add_axes([0, 0, self.subgraph_width, self.subgraph_height])
             sub_ax.axis('off')
@@ -132,24 +144,24 @@ class GenomeMicroscope:
             node_size = self.subgraph_node_size * scaling_factor
 
             neuron_colors = {
-                gd["n"]: self.neuron_cmap[gd["type"]] for gd in this_genome_data["nodes"]}
+                n_["n"]: self.neuron_cmap[n_["type"]] for n_ in nodes_info}
 
             n_colors = [neuron_colors[nid] for nid in subgraph.nodes]
 
             edge_colors = {
-                (edge["in"], edge["on"]): "#000000"
-                for edge in this_genome_data["edges"]}
+                edge: "#000000"
+                for edge in edges}
 
             recurrent_edge_colors = {
-                (redge["in"], redge["on"]): "#1E90FF"
-                for redge in this_genome_data["recurrent_edges"]}
+                redge: "#1E90FF"
+                for redge in recurrent_edges}
 
             edge_colors.update(recurrent_edge_colors)
 
             e_colors = [edge_colors[eid] for eid in subgraph.edges]
 
             edge_labels = dict()
-            for recurrent_edge in this_genome_data["recurrent_edges"]:
+            for recurrent_edge in redges_info:
                 edge_labels[(recurrent_edge["in"], recurrent_edge["on"])] = recurrent_edge["rd"]
 
             nx.draw(
@@ -172,5 +184,3 @@ class GenomeMicroscope:
             self.update_subplot(sub_ax)
 
             plt.draw()
-
-

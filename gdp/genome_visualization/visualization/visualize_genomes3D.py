@@ -4,9 +4,18 @@ from .arrow3d import Arrow3D
 import io
 import imageio.v2 as imageio
 from ...genome_data import GenomeData
+from .interp_3d_path import disp_interpolated_points
+from matplotlib.colors import to_rgb
 
 
-def visualize_genomes3D(save_fpath, genome_data: GenomeData, genome_colors, args):
+def visualize_genomes3D(
+        save_fpath,
+        genome_data: GenomeData,
+        genome_colors,
+        args,
+        special_group=None,
+        paths_to_trace=None,
+        dimmer_list=None):
     """
     Perform the 3D visualization, save to a GIF.
 
@@ -33,17 +42,20 @@ def visualize_genomes3D(save_fpath, genome_data: GenomeData, genome_colors, args
     graph = genome_data.make_graph()
     positions = genome_data.get_positions_with_gid()
 
-    node_alpha = args["3D_node_alpha"]
-
     for node in graph.nodes:
         x, y, z = positions[node]
+
+        alpha = args["3D_node_alpha_on"]
+
+        if node in dimmer_list:
+            alpha = args["3D_node_alpha_off"]
 
         ax.plot(
             x, y, z,
             marker='o',
             markersize=node_size,
             color=genome_colors[node],
-            alpha=node_alpha)
+            alpha=alpha)
 
     for edge in graph.edges:
         from_node, to_node = edge
@@ -62,6 +74,10 @@ def visualize_genomes3D(save_fpath, genome_data: GenomeData, genome_colors, args
             zorder=-100000)
 
         ax.add_artist(a)
+
+    if paths_to_trace is not None:
+        for path, cmap in paths_to_trace:
+            disp_interpolated_points(ax=ax, points=path, cmap=cmap)
 
     ax.set_xlabel('Generation Number (Creation Time)')
     ax.set_ylabel('X')

@@ -4,8 +4,9 @@ args:
   node_size: 4
   arrow_size: 2
   line_width: 0.2
-  3D_node_alpha: 1.0
-  3D_line_alpha: 0.1
+  3D_node_alpha_on: 1.0
+  3D_node_alpha_off: 0.1
+  3D_line_alpha: 0.05
   subgraph_node_size: 100
   subgraph_width: 0.3
   subgraph_height: 0.3

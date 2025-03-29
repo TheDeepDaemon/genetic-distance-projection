@@ -133,11 +133,21 @@ def calc_colors_by_group(genome_groups: dict):
         # use (basically) randomly generated colors if there are even more than that
         color_list = generate_arbitrary_colors(n_groups)
 
-    np.random.shuffle(color_list)
+    shuffled_indices = np.arange(len(groups))
+    np.random.shuffle(shuffled_indices)
 
-    genome_colors = {gid: color_list[group_number] for gid, group_number in genome_groups.items()}
+    group_indices = {group_num: idx for idx, group_num in zip(shuffled_indices, groups)}
+
+    colors_dict = {
+        group_number: color_list[group_indices[group_number]]
+        for group_number in group_indices}
+
+    genome_colors = {
+        gid: colors_dict[group_number]
+        for gid, group_number in genome_groups.items()}
 
     legend_handles = [
-        Patch(color=color_list[group_number], label=f"Group {group_number}") for group_number in list(groups)]
+        Patch(color=colors_dict[group_number], label=f"Group {group_number}")
+        for group_number in list(groups)]
 
     return genome_colors, legend_handles

@@ -4,6 +4,21 @@ import os
 import datetime
 import argparse
 import matplotlib
+import json
+
+
+def save_config(save_fpath: str, args: dict):
+    """
+    Save information about the config used for these visuals.
+    Args:
+        save_fpath: The filename used for the visuals.
+        args: The program arguments.
+    """
+    _, fname = os.path.split(save_fpath)
+    fname_no_ext, f_ext = os.path.splitext(fname)
+    with open(f"config_log/{fname_no_ext}.json", 'w', encoding='utf-8') as f:
+        args["output_fname"] = fname
+        json.dump(args, f, indent=4)
 
 
 def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
@@ -69,7 +84,8 @@ def main(data_source_path):
         genome_data.transform_positions01(best_genome_id=best_genome)
 
     # create the visualizer
-    genome_visualizer = GenomeVisualizer(genome_data=genome_data)
+    genome_visualizer = GenomeVisualizer(
+        genome_data=genome_data, genome_data_collector=data_collector)
 
     # set colors
     genome_groups = data_collector.get_genome_attribute_by_key("group")
@@ -91,7 +107,9 @@ def main(data_source_path):
         file_ext = args["vis_image_type"]
 
         # do 2D visualizations
-        genome_visualizer.visualize_genomes2D(save_fpath=f"{save_fpath}.{file_ext}", args=args)
+        save_fpath = f"{save_fpath}.{file_ext}"
+        genome_visualizer.visualize_genomes2D(save_fpath=save_fpath, args=args)
+        save_config(save_fpath=save_fpath, args=args)
 
     elif visualization_type == '3D':
 
@@ -99,13 +117,14 @@ def main(data_source_path):
         os.makedirs("vis_output", exist_ok=True)
 
         # do 3D visualizations
-        genome_visualizer.visualize_genomes3D(f"{save_fpath}.gif", args=args)
+        save_fpath = f"{save_fpath}.gif"
+        genome_visualizer.visualize_genomes3D(save_fpath=save_fpath, args=args)
+        save_config(save_fpath=save_fpath, args=args)
 
     elif visualization_type == 'microscope':
 
         # do the interactive visualization
-        #genome_visualizer.visualize_genomes_microscope(args=args, genome_data_dict=genome_data_dict)
-        pass
+        genome_visualizer.visualize_genomes_microscope(args=args, data_collector=data_collector)
 
     else:
         raise ValueError(f"visualization_type: \'{visualization_type}\' not recognized.")

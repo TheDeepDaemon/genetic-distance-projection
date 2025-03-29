@@ -194,6 +194,9 @@ class GenomeDataCollector:
         self.add_population_member(genome_id=genome_id)
         self._population_info[genome_id].update(info)
 
+    def get_single_attribute(self, genome_id, key):
+        return self._population_info[genome_id][key]
+
     def convert_info_to_genes(self, func, key):
         for genome_id, info in self._population_info.items():
 

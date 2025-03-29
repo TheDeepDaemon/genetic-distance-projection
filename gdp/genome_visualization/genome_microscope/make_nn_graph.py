@@ -2,23 +2,25 @@ import networkx as nx
 import numpy as np
 
 
-def get_genome_graph(single_genome_data):
+def get_genome_graph(nodes, edges):
     """
     Take a dict of genome data and convert it into a graph.
 
     Args:
-        single_genome_data: The dictionary of genome data.
+        nodes: The nodes of the neural network.
+        edges: The edges of the neural network.
 
     Returns:
         Graph with nodes and edges included.
     """
     graph = nx.DiGraph()
 
-    for node_data in single_genome_data["nodes"]:
-        graph.add_node(node_data['n'])
+    for n in nodes:
+        graph.add_node(n)
 
-    for edge_data in single_genome_data["edges"]:
-        graph.add_edge(edge_data['in'], edge_data['on'])
+    for e in edges:
+        print(e)
+        graph.add_edge(*e)
 
     return graph
 
@@ -96,9 +98,9 @@ def find_node_depths(graph: nx.DiGraph, input_nodes: list[int]):
     return node_depths
 
 
-def make_nn_graph(single_genome_data, x_spacing, y_spacing):
+def make_nn_graph(nodes, edges, recurrent_edges, x_spacing, y_spacing):
 
-    graph = get_genome_graph(single_genome_data)
+    graph = get_genome_graph(nodes, edges)
 
     input_nodes, output_nodes = get_input_output_nodes(graph)
 
@@ -126,7 +128,7 @@ def make_nn_graph(single_genome_data, x_spacing, y_spacing):
     positions = {node: (x_positions[node], y_positions[node]) for node in graph.nodes}
 
     # add in the recurrent edges afterwards
-    for edge_data in single_genome_data["recurrent_edges"]:
-        graph.add_edge(edge_data['in'], edge_data['on'])
+    for re in recurrent_edges:
+        graph.add_edge(*re)
 
     return graph, positions

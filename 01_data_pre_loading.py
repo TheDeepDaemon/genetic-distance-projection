@@ -41,27 +41,27 @@ def main(data_source_path):
 
     if use_node_gene_data:
         data_collector.convert_info_to_genes(
-            func=lambda data_entry: [f"node_id:{gn["n"]}" for gn in data_entry],
+            func=lambda data_entry: ["node_id:{}".format(gn["n"]) for gn in data_entry],
             key="nodes")
 
     if use_edge_gene_data:
         data_collector.convert_info_to_genes(
-            func=lambda data_entry: [f"edge_id:{ge["n"]}" for ge in data_entry],
+            func=lambda data_entry: ["edge_id:{}".format(ge["n"]) for ge in data_entry],
             key="edges")
 
     if use_edge_weights_data:
         data_collector.convert_info_to_gene_values(
-            func=lambda data_entry: {f"edge_weight:{ge["n"]}": float(ge["weight"]) for ge in data_entry},
+            func=lambda data_entry: {"edge_weight:{}".format(ge["n"]): float(ge["weight"]) for ge in data_entry},
             key="edges")
 
     if use_recurrent_edge_gene_data:
         data_collector.convert_info_to_genes(
-            func=lambda data_entry: [f"recurrent_edge:{gre["n"]}" for gre in data_entry],
+            func=lambda data_entry: ["recurrent_edge:{}".format(gre["n"]) for gre in data_entry],
             key="recurrent_edges")
 
     if use_recurrent_edge_weights_data:
         data_collector.convert_info_to_gene_values(
-            func=lambda data_entry: {f"recurrent_edge_weight:{gre["n"]}": float(gre["weight"]) for gre in data_entry},
+            func=lambda data_entry: {"recurrent_edge_weight:{}".format(gre["n"]): float(gre["weight"]) for gre in data_entry},
             key="recurrent_edges")
 
     genome_data = GenomeData()

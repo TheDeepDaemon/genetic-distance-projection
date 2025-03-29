@@ -7,6 +7,18 @@ import matplotlib
 import json
 
 
+run_type_titles = {
+    "evoviz_examples_neat_high_speciation_1epoch": "NEAT High Speciation 1 BP Epoch",
+    "evoviz_examples_neat_high_speciation_10epochs": "NEAT High Speciation 10 BP Epochs",
+    "evoviz_examples_neat_low_speciation_1epoch": "NEAT Low Speciation 1 BP Epoch",
+    "evoviz_examples_neat_low_speciation_10epochs": "NEAT Low Speciation 10 BP Epochs",
+    "evoviz_examples_no_repop_1epoch": "EXAMM No Repopulation 1 BP Epoch",
+    "evoviz_examples_no_repop_10epochs": "EXAMM No Repopulation 10 BP Epochs",
+    "evoviz_examples_repop_1epoch": "EXAMM With Repopulation 1 BP Epoch",
+    "evoviz_examples_repop_10epochs": "EXAMM With Repopulation 10 BP Epochs",
+}
+
+
 def save_config(save_fpath: str, args: dict):
     """
     Save information about the config used for these visuals.
@@ -53,6 +65,8 @@ def main(data_source_path):
 
     # data storage run type
     run_type = args["run_type"]
+
+    title = run_type_titles[run_type]
 
     identifying_keys = [
         "reduction_type",
@@ -118,7 +132,8 @@ def main(data_source_path):
 
         # do 3D visualizations
         save_fpath = f"{save_fpath}.gif"
-        genome_visualizer.visualize_genomes3D(save_fpath=save_fpath, args=args)
+        genome_visualizer.visualize_genomes3D(
+            save_fpath=save_fpath, args=args, title=title)
         save_config(save_fpath=save_fpath, args=args)
 
     elif visualization_type == 'microscope':

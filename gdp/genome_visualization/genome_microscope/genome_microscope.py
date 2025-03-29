@@ -5,7 +5,6 @@ import numpy as np
 import math
 import matplotlib.colors as mcolors
 from matplotlib.patches import Patch
-
 from ... import GenomeDataCollector
 from ...genome_data import GenomeData
 

@@ -43,8 +43,22 @@ multiple_choice_args:
       selected: 0
 
   run_type:
-    - option: example_option
+    - option: evoviz_examples_neat_high_speciation_1epoch
+      selected: 0
+    - option: evoviz_examples_neat_high_speciation_10epochs
+      selected: 0
+    - option: evoviz_examples_neat_low_speciation_10epochs
+      selected: 0
+    - option: evoviz_examples_neat_low_speciation_1epoch
+      selected: 0
+    - option: evoviz_examples_no_repop_10epochs
+      selected: 0
+    - option: evoviz_examples_no_repop_1epoch
+      selected: 0
+    - option: evoviz_examples_repop_10epochs
       selected: 1
+    - option: evoviz_examples_repop_1epoch
+      selected: 0
 
   visualization_type:
     - option: "2D"

@@ -1,13 +1,11 @@
-import numpy as np
-
 from .. import GenomeDataCollector
 from ..genome_data import GenomeData
 from .visualization import (
     visualize_genomes2D, visualize_genomes3D, calc_colors_by_fitness, calc_colors_by_group, trace_gene_origin)
 from .genome_microscope import GenomeMicroscope
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
-from matplotlib.colors import to_rgb
 
 
 class GenomeVisualizer:
@@ -87,7 +85,8 @@ class GenomeVisualizer:
             save_fpath: str,
             args: dict,
             trace_best=False,
-            trace_gene_origins=False):
+            trace_gene_origins=False,
+            title: str=None):
         """
         Perform the 3D visualization, save to a GIF.
 
@@ -153,7 +152,8 @@ class GenomeVisualizer:
             genome_colors=self.genome_colors,
             args=args,
             dimmer_list=self.dimmer_list,
-            paths_to_trace=paths)
+            paths_to_trace=paths,
+            title=title)
 
     def visualize_genomes_microscope(self, args, data_collector: GenomeDataCollector):
         GenomeMicroscope(

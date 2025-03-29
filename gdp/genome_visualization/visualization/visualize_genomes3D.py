@@ -5,7 +5,6 @@ import io
 import imageio.v2 as imageio
 from ...genome_data import GenomeData
 from .interp_3d_path import disp_interpolated_points
-from matplotlib.colors import to_rgb
 
 
 def visualize_genomes3D(
@@ -13,9 +12,9 @@ def visualize_genomes3D(
         genome_data: GenomeData,
         genome_colors,
         args,
-        special_group=None,
-        paths_to_trace=None,
-        dimmer_list=None):
+        paths_to_trace: list=None,
+        dimmer_list: list=None,
+        title: str=None):
     """
     Perform the 3D visualization, save to a GIF.
 
@@ -24,6 +23,9 @@ def visualize_genomes3D(
         genome_data: The genome data to use.
         genome_colors: The node colors for the genomes.
         args: Passed arguments and their keywords.
+        paths_to_trace: The list of paths to trace, and their color maps.
+        dimmer_list: A list of nodes to dim.
+        title: The title to show in the 3D graph plot.
     """
 
     # MAKE THE PLOT
@@ -82,7 +84,11 @@ def visualize_genomes3D(
     ax.set_xlabel('Generation Number (Creation Time)')
     ax.set_ylabel('X')
     ax.set_zlabel('Y')
-    plt.title('3D Graph Plot')
+
+    if title is not None:
+        plt.title(title)
+    else:
+        plt.title('3D Graph Plot')
 
     # SAVE IMAGES OF THE PLOT
     increment = args["increment"] if "increment" in args else 5

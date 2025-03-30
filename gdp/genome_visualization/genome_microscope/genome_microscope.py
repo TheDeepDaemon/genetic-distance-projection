@@ -58,11 +58,6 @@ class GenomeMicroscope:
 
         self.spr_layout = nx.spring_layout(genome_graph, pos=genome_data.get_positions(), fixed=genome_ids_set)
 
-        self.genome_positions = np.array(
-            [self.ax.transData.transform(v) for k, v in self.spr_layout.items()], dtype=np.float32)
-        self.node_order = np.array(
-            [k for k, v in self.spr_layout.items()], dtype=int)
-
         node_colors = [genome_colors[int(node)] for node in genome_graph.nodes]
 
         # draw nodes with fill color on top
@@ -92,6 +87,17 @@ class GenomeMicroscope:
             prop={'size': 6})
 
         self.prev_selected_node = None
+
+        # store the transformed positions, so we can compare later to mouse position
+        self.genome_positions = np.array(
+            [self.ax.transData.transform(v) for k, v in self.spr_layout.items()], dtype=np.float32)
+        self.node_order = np.array(
+            [k for k, v in self.spr_layout.items()], dtype=int)
+
+
+        self.node_id_text = plt.text(
+            1, 1, 'node selected: None', transform=self.ax.transAxes,
+            ha='right', va='top', fontsize=12, color='black')
 
         # ___ ___ ___ ___
         # RUN THE PROGRAM
@@ -181,5 +187,10 @@ class GenomeMicroscope:
                 rotate=False)
 
             self.update_subplot(sub_ax)
+
+            self.node_id_text.remove()
+            self.node_id_text = plt.text(
+                1, 1, f"node selected: {selected_node}", transform=self.ax.transAxes,
+                ha='right', va='top', fontsize=12, color='black')
 
             plt.draw()

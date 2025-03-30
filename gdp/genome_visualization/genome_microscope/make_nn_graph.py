@@ -19,7 +19,6 @@ def get_genome_graph(nodes, edges):
         graph.add_node(n)
 
     for e in edges:
-        print(e)
         graph.add_edge(*e)
 
     return graph

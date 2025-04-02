@@ -111,9 +111,15 @@ class SimpleGraphingModel(nn.Module):
 
 
 def fit(
-    model: nn.Module, data: torch.Tensor, device,
-    batch_size: int=64, epochs: int=1000, lr: float=0.001, verbose: bool=False
+        model: nn.Module,
+        data: torch.Tensor,
+        device,
+        epochs: int=1000,
+        batch_size: int=64,
+        lr: float=0.001,
+        verbose: bool=True
 ):
+
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.MSELoss()
 
@@ -202,6 +208,9 @@ def reduce_using_neural_net(genome_data_mat: np.ndarray, args, model_type: str='
     # parsing the epochs argument
     epochs = parse_program_arguments(args, keyword="epochs", expected_type=int, default_val=1)
 
+    # parsing the epochs argument
+    batch_size = parse_program_arguments(args, keyword="batch_size", expected_type=int, default_val=64)
+
     # Check if GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -225,7 +234,14 @@ def reduce_using_neural_net(genome_data_mat: np.ndarray, args, model_type: str='
         genome_data_tensor = torch.tensor(genome_data_mat, dtype=torch.float32)
 
         # fit the model based on the positions, 2D positions should match genome distances
-        fit(model, genome_data_tensor, device=device, batch_size=16, epochs=epochs, lr=0.0001, verbose=verbose)
+        fit(
+            model=model,
+            data=genome_data_tensor,
+            device=device,
+            batch_size=batch_size,
+            epochs=epochs,
+            lr=0.0001,
+            verbose=verbose)
 
         model.eval()
         with torch.no_grad():

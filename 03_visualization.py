@@ -1,8 +1,7 @@
-from gdp import GenomeData, GenomeVisualizer, GenomeDataCollector
+from gdp import GenomeMatrix, GenomeVisualizer, GenomeDataCollector
 from local_util import load_program_arguments, get_subset
 import os
 import datetime
-import argparse
 import matplotlib
 import json
 
@@ -48,7 +47,7 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
     return save_fpath
 
 
-def main(data_source_path):
+def main():
 
     # data directory name
     reduced_data_dir = "reduced_genome_data"
@@ -56,17 +55,15 @@ def main(data_source_path):
     # load the program arguments
     args = load_program_arguments()
 
-    if data_source_path is None:
-        # where to get the data_storage from
-        data_source_path = args["data_source_path"]
-
     # what kind of dimensionality reduction to do
     reduction_type = args["reduction_type"]
 
     # data storage run type
     run_type = args["run_type"]
 
-    title = run_type_titles[run_type]
+
+    #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+    # LOAD DATA
 
     identifying_keys = [
         "reduction_type",
@@ -79,14 +76,14 @@ def main(data_source_path):
     ]
 
     # find the genome data to use
-    load_fname = GenomeData.find_latest_genome_data(
+    load_fname = GenomeMatrix.find_latest_genome_data(
         data_dir=reduced_data_dir, identifying_args=get_subset(args, identifying_keys))
 
     data_collector = GenomeDataCollector()
-    data_collector.load(f"{os.path.join(data_source_path, run_type)}.zip")
+    data_collector.load(f"data/{run_type}.zip")
 
     # create the genome data storage class to be used for visuals
-    genome_data = GenomeData()
+    genome_data = GenomeMatrix()
 
     # load the processed data storage from the directory
     genome_data.load_data(
@@ -97,9 +94,13 @@ def main(data_source_path):
         best_genome = data_collector.get_global_best()
         genome_data.transform_positions01(best_genome_id=best_genome)
 
+    data_collector.set_reduced_positions(genome_data.get_positions())
+
+    #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
+    # CREATE VISUALIZER AND DO VISUALIZATION
+
     # create the visualizer
-    genome_visualizer = GenomeVisualizer(
-        genome_data=genome_data, genome_data_collector=data_collector)
+    genome_visualizer = GenomeVisualizer(genome_data_collector=data_collector)
 
     # set colors
     genome_groups = data_collector.get_genome_attribute_by_key("group")
@@ -109,6 +110,8 @@ def main(data_source_path):
         reduction_type=reduction_type,
         data_source_type=run_type,
         add_timestamp=args["add_timestamp_to_vis"])
+
+    title = run_type_titles[run_type]
 
     # get the type of visualization to perform: 2D or 3D
     visualization_type = args["visualization_type"]
@@ -147,20 +150,8 @@ def main(data_source_path):
 
 if __name__=="__main__":
 
-    parser = argparse.ArgumentParser(description="Visualize the genome data.")
-
-    parser.add_argument(
-        "data_source_path",
-        nargs="?",
-        default=None,
-        type=str,
-        help="Filename of the directory containing EA run data."
-    )
-
-    args = parser.parse_args()
-
     # set the fonts for matplotlib
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
 
-    main(args.data_source_path)
+    main()

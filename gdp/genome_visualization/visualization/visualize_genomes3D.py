@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 from .arrow3d import Arrow3D
 import io
 import imageio.v2 as imageio
-from ...genome_data import GenomeData
+
+from ...genome_data import GenomeDataCollector
 from .interp_3d_path import disp_interpolated_points
 
 
 def visualize_genomes3D(
         save_fpath,
-        genome_data: GenomeData,
+        genome_data_collector: GenomeDataCollector,
         genome_colors,
         args,
         paths_to_trace: list=None,
@@ -20,7 +21,7 @@ def visualize_genomes3D(
 
     Args:
         save_fpath: The filepath to save the GIF to.
-        genome_data: The genome data to use.
+        genome_data_collector: The genome data.
         genome_colors: The node colors for the genomes.
         args: Passed arguments and their keywords.
         paths_to_trace: The list of paths to trace, and their color maps.
@@ -41,8 +42,8 @@ def visualize_genomes3D(
     line_alpha = args["3D_line_alpha"]
 
     # function arguments
-    graph = genome_data.make_graph()
-    positions = genome_data.get_positions_with_gid()
+    graph = genome_data_collector.make_graph()
+    positions = genome_data_collector.get_3D_positions()
 
     for node in graph.nodes:
         x, y, z = positions[node]

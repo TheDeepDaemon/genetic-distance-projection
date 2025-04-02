@@ -1,6 +1,5 @@
 
 args:
-  data_source_path: PUT_THE_PATH_TO_DATA_HERE
   node_size: 4
   arrow_size: 2
   line_width: 0.2

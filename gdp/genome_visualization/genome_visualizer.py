@@ -1,5 +1,5 @@
 from .. import GenomeDataCollector
-from ..genome_data import GenomeData
+from ..genome_data import GenomeMatrix
 from .visualization import (
     visualize_genomes2D, visualize_genomes3D, calc_colors_by_fitness, calc_colors_by_group, trace_gene_origin)
 from .genome_microscope import GenomeMicroscope
@@ -10,8 +10,7 @@ from matplotlib import colormaps
 
 class GenomeVisualizer:
 
-    def __init__(self, genome_data: GenomeData, genome_data_collector: GenomeDataCollector):
-        self.genome_data = genome_data
+    def __init__(self, genome_data_collector: GenomeDataCollector):
         self.genome_data_collector = genome_data_collector
         self.genome_colors = None
         self.legend_handles = None
@@ -69,13 +68,9 @@ class GenomeVisualizer:
             print("Genome colors are not set!")
             return
 
-        if self.genome_data.reduction_type_used is None:
-            print("You must reduce the genomes to positions before displaying.")
-            return
-
         visualize_genomes2D(
             save_fpath=save_fpath,
-            genome_data=self.genome_data,
+            genome_data_collector=self.genome_data_collector,
             genome_colors=self.genome_colors,
             args=args,
             legend_handles=self.legend_handles)
@@ -101,20 +96,16 @@ class GenomeVisualizer:
             print("Genome colors are not set!")
             return
 
-        if self.genome_data.reduction_type_used is None:
-            print("You must reduce the genomes to positions before displaying.")
-            return
-
         paths = []
 
         if trace_best or trace_gene_origins:
-            positions_dict = self.genome_data.get_positions_with_gid()
+            positions = self.genome_data_collector.get_genome_attribute_by_key("reduced_position")
             self.dimmer_list = [gid for gid in self.genome_colors]
 
         if trace_best:
             line_of_succession = self.genome_data_collector.get_line_of_succession()
 
-            points = [positions_dict[gid] for gid in line_of_succession]
+            points = [positions[gid] for gid in line_of_succession]
             points = np.array(points)
 
             paths.append((points, plt.cm.spring))
@@ -138,7 +129,7 @@ class GenomeVisualizer:
 
                 cmap = plt.get_cmap(cmaps[i])
 
-                points = [positions_dict[gid] for gid in gene_path]
+                points = [positions[gid] for gid in gene_path]
                 points = np.array(points)
 
                 paths.append((points, cmap))
@@ -148,7 +139,7 @@ class GenomeVisualizer:
 
         visualize_genomes3D(
             save_fpath=save_fpath,
-            genome_data=self.genome_data,
+            genome_data_collector=self.genome_data_collector,
             genome_colors=self.genome_colors,
             args=args,
             dimmer_list=self.dimmer_list,

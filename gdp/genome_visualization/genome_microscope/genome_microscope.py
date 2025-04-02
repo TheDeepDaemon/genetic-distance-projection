@@ -6,7 +6,7 @@ import math
 import matplotlib.colors as mcolors
 from matplotlib.patches import Patch
 from ... import GenomeDataCollector
-from ...genome_data import GenomeData
+from ...genome_data import GenomeMatrix
 
 
 class GenomeMicroscope:
@@ -14,7 +14,6 @@ class GenomeMicroscope:
     def __init__(
             self,
             args: dict,
-            genome_data: GenomeData,
             genome_data_collector: GenomeDataCollector,
             genome_colors):
 
@@ -52,11 +51,13 @@ class GenomeMicroscope:
         self.fig, self.ax = plt.subplots(figsize=(6, 6))
         self.ax.margins(x=0.4, y=0.4)
 
-        genome_graph = genome_data.make_graph()
+        genome_graph = genome_data_collector.make_graph()
 
         genome_ids_set = set(genome_graph.nodes)
 
-        self.spr_layout = nx.spring_layout(genome_graph, pos=genome_data.get_positions(), fixed=genome_ids_set)
+        positions = genome_data_collector.get_genome_attribute_by_key("reduced_position")
+
+        self.spr_layout = nx.spring_layout(genome_graph, pos=positions, fixed=genome_ids_set)
 
         node_colors = [genome_colors[int(node)] for node in genome_graph.nodes]
 
@@ -98,6 +99,8 @@ class GenomeMicroscope:
         self.node_id_text = plt.text(
             1, 1, 'node selected: None', transform=self.ax.transAxes,
             ha='right', va='top', fontsize=12, color='black')
+
+        plt.savefig("interactive1.pdf")
 
         # ___ ___ ___ ___
         # RUN THE PROGRAM

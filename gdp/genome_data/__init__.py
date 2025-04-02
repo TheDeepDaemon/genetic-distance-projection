@@ -1,2 +1,2 @@
-from .genome_data import GenomeData, join_genomes, join_genomes_list
+from .genome_matrix import GenomeMatrix
 from .genome_data_collector import GenomeDataCollector

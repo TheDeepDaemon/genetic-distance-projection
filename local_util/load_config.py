@@ -56,9 +56,4 @@ def load_program_arguments(default_ok=False):
             # set to default value
             args[k] = default_val
 
-    # don't use the placeholder path to load data
-    if args["data_source_path"] == default_args["data_source_path"]:
-        print("Data source path is not set.")
-        args["data_source_path"] = None
-
     return args

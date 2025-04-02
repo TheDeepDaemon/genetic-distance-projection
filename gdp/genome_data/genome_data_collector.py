@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import zipfile
+import networkx as nx
 
 
 class GenomeDataCollector:
@@ -265,3 +266,52 @@ class GenomeDataCollector:
                 line_of_succession.append(genome_id)
 
         return line_of_succession
+
+    def set_reduced_positions(self, position_data: dict):
+        for gid, pos in position_data.items():
+            self._population_info[gid]["reduced_position"] = pos
+
+    def make_graph(self):
+        """
+        Convert this data_storage to a networkx graph that is usable.
+
+        Returns:
+            A networkx graph of the relations between the genomes.
+        """
+        graph = nx.DiGraph()
+        for genome_id in self._population_info:
+            graph.add_node(genome_id)
+
+        for gid, info in self._population_info.items():
+            parents = info["parents"]
+            for pid in parents:
+                if pid != gid:
+                    if (pid in graph.nodes) and (gid in graph.nodes):
+                        graph.add_edge(pid, gid)
+
+        return graph
+
+    def get_3D_positions(self, genome_id_axis=0):
+        """
+        Constructs a dictionary containing the position for each genome ID, where a 3rd axis is the genome ID.
+
+        Args:
+            genome_id_axis: The axis that genome ID should be.
+
+        Returns:
+            The dictionary of 3D positions.
+        """
+        if genome_id_axis==0:
+            return {
+                gid: (gid, info["reduced_position"][0], info["reduced_position"][1])
+                for gid, info in self._population_info.items()}
+        elif genome_id_axis==1:
+            return {
+                gid: (info["reduced_position"][0], gid, info["reduced_position"][1])
+                for gid, info in self._population_info.items()}
+        elif genome_id_axis==2:
+            return {
+                gid: (info["reduced_position"][0], info["reduced_position"][1], gid)
+                for gid, info in self._population_info.items()}
+        else:
+            raise ValueError(f"Axis: {genome_id_axis} is out of bounds.")

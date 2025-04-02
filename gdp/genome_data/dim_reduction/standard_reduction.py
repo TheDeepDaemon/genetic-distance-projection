@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
-from scipy.spatial.distance import pdist, squareform
+import torch
 
 
 def reduce_using_pca(genes_matrix: np.ndarray, reduced_size: int):
@@ -47,5 +47,6 @@ def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int, random_state: 
         np.ndarray: The reduced matrix.
     """
     mds = MDS(n_components=reduced_size, dissimilarity="precomputed", random_state=random_state)
-    dist_genes_mat = squareform(pdist(genes_matrix))
-    return mds.fit_transform(dist_genes_mat)
+    genes_tensor = torch.from_numpy(genes_matrix)
+    distance_mat = torch.cdist(genes_tensor, genes_tensor, p=2)
+    return mds.fit_transform(distance_mat.numpy())

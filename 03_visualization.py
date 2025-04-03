@@ -1,5 +1,5 @@
 from gdp import GenomeMatrix, GenomeVisualizer, GenomeDataCollector
-from local_util import load_program_arguments, get_subset
+from program_arguments import ProgramArguments
 import os
 import datetime
 import matplotlib
@@ -49,18 +49,8 @@ def get_save_fpath(reduction_type, data_source_type, add_timestamp: bool):
 
 def main():
 
-    # data directory name
-    reduced_data_dir = "reduced_genome_data"
-
     # load the program arguments
-    args = load_program_arguments()
-
-    # what kind of dimensionality reduction to do
-    reduction_type = args["reduction_type"]
-
-    # data storage run type
-    run_type = args["run_type"]
-
+    program_args = ProgramArguments()
 
     #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
     # LOAD DATA
@@ -77,20 +67,20 @@ def main():
 
     # find the genome data to use
     load_fname = GenomeMatrix.find_latest_genome_data(
-        data_dir=reduced_data_dir, identifying_args=get_subset(args, identifying_keys))
+        data_dir="reduced_genome_data", identifying_args=program_args.get_subset(identifying_keys))
 
     data_collector = GenomeDataCollector()
-    data_collector.load(f"data/{run_type}.zip")
+    data_collector.load(f"data/{program_args.run_type}.zip")
 
     # create the genome data storage class to be used for visuals
     genome_data = GenomeMatrix()
 
     # load the processed data storage from the directory
     genome_data.load_data(
-        zip_fpath=os.path.join(reduced_data_dir, load_fname),
-        identifying_args=get_subset(args, identifying_keys))
+        zip_fpath=os.path.join("reduced_genome_data", load_fname),
+        identifying_args=program_args.get_subset(identifying_keys))
 
-    if args["transform_to_01"]:
+    if program_args.transform_to_01:
         best_genome = data_collector.get_global_best()
         genome_data.transform_positions01(best_genome_id=best_genome)
 
@@ -107,26 +97,26 @@ def main():
     genome_visualizer.set_genome_colors_by_group(genome_groups)
 
     save_fpath = get_save_fpath(
-        reduction_type=reduction_type,
-        data_source_type=run_type,
-        add_timestamp=args["add_timestamp_to_vis"])
+        reduction_type=program_args.reduction_type,
+        data_source_type=program_args.run_type,
+        add_timestamp=program_args.add_timestamp_to_vis)
 
-    title = run_type_titles[run_type]
+    title = run_type_titles[program_args.run_type]
 
     # get the type of visualization to perform: 2D or 3D
-    visualization_type = args["visualization_type"]
+    visualization_type = program_args.visualization_type
 
     if visualization_type == '2D':
 
         # make sure the visualization output directory exists so we can output to it
         os.makedirs("vis_output", exist_ok=True)
 
-        file_ext = args["vis_image_type"]
+        file_ext = program_args.vis_image_type
 
         # do 2D visualizations
         save_fpath = f"{save_fpath}.{file_ext}"
-        genome_visualizer.visualize_genomes2D(save_fpath=save_fpath, args=args)
-        save_config(save_fpath=save_fpath, args=args)
+        genome_visualizer.visualize_genomes2D(save_fpath=save_fpath, args=program_args.args)
+        save_config(save_fpath=save_fpath, args=program_args.args)
 
     elif visualization_type == '3D':
 
@@ -136,13 +126,13 @@ def main():
         # do 3D visualizations
         save_fpath = f"{save_fpath}.gif"
         genome_visualizer.visualize_genomes3D(
-            save_fpath=save_fpath, args=args, title=title)
-        save_config(save_fpath=save_fpath, args=args)
+            save_fpath=save_fpath, args=program_args.args, title=title)
+        save_config(save_fpath=save_fpath, args=program_args.args)
 
     elif visualization_type == 'microscope':
 
         # do the interactive visualization
-        genome_visualizer.visualize_genomes_microscope(args=args, data_collector=data_collector)
+        genome_visualizer.visualize_genomes_microscope(args=program_args.args, data_collector=data_collector)
 
     else:
         raise ValueError(f"visualization_type: \'{visualization_type}\' not recognized.")

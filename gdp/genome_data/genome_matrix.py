@@ -2,7 +2,12 @@ import json
 import numpy as np
 from .genome_data_collector import GenomeDataCollector
 from .dim_reduction import (
-    reduce_using_neural_net, reduce_using_simple_neural_net, reduce_using_pca, reduce_using_svd, reduce_using_mds)
+    reduce_using_neural_net,
+    reduce_using_simple_neural_net,
+    reduce_using_pca,
+    reduce_using_svd,
+    reduce_using_mds,
+    reduce_using_t_sne)
 from enum import Enum
 import zipfile
 import io
@@ -24,6 +29,7 @@ class ReductionType(Enum):
     MDS = 3
     PCA = 4
     SVD = 5
+    T_SNE = 6
 
 
 class GenomeMatrix:
@@ -34,7 +40,8 @@ class GenomeMatrix:
         ReductionType.SIMPLE_NEURAL_NET: ['snn', 'simple_neural_network'],
         ReductionType.MDS: ['mds', 'multi_dimensional_scaling'],
         ReductionType.PCA: ['pca', 'principal_component_analysis'],
-        ReductionType.SVD: ['svd', 'singular_value_decomposition']}
+        ReductionType.SVD: ['svd', 'singular_value_decomposition'],
+        ReductionType.T_SNE: ['t-sne', 'tsne', 't-stochastic_neighbor_embedding']}
 
     # the function used to perform each type of reduction
     _REDUCTION_TYPE_FUNCTIONS = {
@@ -43,10 +50,12 @@ class GenomeMatrix:
         ReductionType.SIMPLE_NEURAL_NET: lambda genome_data_mat, args: reduce_using_simple_neural_net(
             genome_data_mat=genome_data_mat, args=args),
         ReductionType.MDS: lambda genome_data_mat, args: reduce_using_mds(
-            genes_matrix=genome_data_mat, reduced_size=2, random_state=np.random.randint(0, 10 ** 9)),
+            genes_matrix=genome_data_mat, reduced_size=2),
         ReductionType.PCA: lambda genome_data_mat, args: reduce_using_pca(
             genes_matrix=genome_data_mat, reduced_size=2),
         ReductionType.SVD: lambda genome_data_mat, args: reduce_using_svd(
+            genes_matrix=genome_data_mat, reduced_size=2),
+        ReductionType.T_SNE: lambda genome_data_mat, args: reduce_using_t_sne(
             genes_matrix=genome_data_mat, reduced_size=2)}
 
     def __init__(self):

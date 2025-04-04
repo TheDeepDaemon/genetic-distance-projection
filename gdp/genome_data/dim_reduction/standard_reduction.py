@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
+from sklearn.manifold import TSNE
 import torch
 
 
@@ -34,7 +35,7 @@ def reduce_using_svd(genes_matrix: np.ndarray, reduced_size: int):
     return genes_matrix @ VT[:reduced_size, :].T
 
 
-def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int, random_state: int):
+def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int):
     """
     Reduce the genes matrix using MDS.
 
@@ -46,7 +47,11 @@ def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int, random_state: 
     Returns:
         np.ndarray: The reduced matrix.
     """
-    mds = MDS(n_components=reduced_size, dissimilarity="precomputed", random_state=random_state)
+    mds = MDS(n_components=reduced_size, dissimilarity="precomputed")
     genes_tensor = torch.from_numpy(genes_matrix)
     distance_mat = torch.cdist(genes_tensor, genes_tensor, p=2)
     return mds.fit_transform(distance_mat.numpy())
+
+def reduce_using_t_sne(genes_matrix: np.ndarray, reduced_size: int):
+    tsne = TSNE(n_components=reduced_size, perplexity=30, learning_rate=200)
+    return tsne.fit_transform(genes_matrix)

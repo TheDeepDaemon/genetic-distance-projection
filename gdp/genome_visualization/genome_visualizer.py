@@ -1,11 +1,12 @@
 from .. import GenomeDataCollector
-from ..genome_data import GenomeMatrix
 from .visualization import (
-    visualize_genomes2D, visualize_genomes3D, calc_colors_by_fitness, calc_colors_by_group, trace_gene_origin)
+    visualize_genomes2D, calc_colors_by_fitness, calc_colors_by_group, trace_gene_origin,
+    visualize_genomes3D_GIF, visualize_genomes3D_images)
 from .genome_microscope import GenomeMicroscope
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
+from ..program_arguments import ProgramArguments
 
 
 class GenomeVisualizer:
@@ -75,26 +76,7 @@ class GenomeVisualizer:
             args=args,
             legend_handles=self.legend_handles)
 
-    def visualize_genomes3D(
-            self,
-            save_fpath: str,
-            args: dict,
-            trace_best=False,
-            trace_gene_origins=False,
-            title: str=None):
-        """
-        Perform the 3D visualization, save to a GIF.
-
-        Args:
-            save_fpath: The filepath to save it to.
-            args: Program arguments and their keywords.
-            trace_best: Whether to trace a path showing the global best.
-            trace_gene_origins: Whether to show the origins of the global best genes.
-        """
-
-        if self.genome_colors is None:
-            print("Genome colors are not set!")
-            return
+    def _create_paths(self, trace_best, trace_gene_origins):
 
         paths = []
 
@@ -137,7 +119,70 @@ class GenomeVisualizer:
         if len(paths) == 0:
             paths = None
 
-        visualize_genomes3D(
+        return paths
+
+    def visualize_genomes3D_GIF(
+            self,
+            save_fpath: str,
+            args: ProgramArguments,
+            trace_best=False,
+            trace_gene_origins=False,
+            title: str=None):
+        """
+        Perform the 3D visualization, save to a GIF.
+
+        Args:
+            save_fpath: The filepath to save it to.
+            args: Program arguments and their keywords.
+            trace_best: Whether to trace a path showing the global best.
+            trace_gene_origins: Whether to show the origins of the global best genes.
+            title: The plot title.
+        """
+
+        if self.genome_colors is None:
+            print("Genome colors are not set!")
+            return
+
+        paths = self._create_paths(
+            trace_best=trace_best,
+            trace_gene_origins=trace_gene_origins)
+
+        visualize_genomes3D_GIF(
+            save_fpath=save_fpath,
+            genome_data_collector=self.genome_data_collector,
+            genome_colors=self.genome_colors,
+            args=args,
+            dimmer_list=self.dimmer_list,
+            paths_to_trace=paths,
+            title=title)
+
+    def visualize_genomes3D_images(
+            self,
+            save_fpath: str,
+            args: ProgramArguments,
+            trace_best=False,
+            trace_gene_origins=False,
+            title: str=None):
+        """
+        Perform the 3D visualization, save to a GIF.
+
+        Args:
+            save_fpath: The filepath to save it to.
+            args: Program arguments and their keywords.
+            trace_best: Whether to trace a path showing the global best.
+            trace_gene_origins: Whether to show the origins of the global best genes.
+            title: The plot title.
+        """
+
+        if self.genome_colors is None:
+            print("Genome colors are not set!")
+            return
+
+        paths = self._create_paths(
+            trace_best=trace_best,
+            trace_gene_origins=trace_gene_origins)
+
+        visualize_genomes3D_images(
             save_fpath=save_fpath,
             genome_data_collector=self.genome_data_collector,
             genome_colors=self.genome_colors,
@@ -149,6 +194,5 @@ class GenomeVisualizer:
     def visualize_genomes_microscope(self, args, data_collector: GenomeDataCollector):
         GenomeMicroscope(
             args=args,
-            genome_data=self.genome_data,
             genome_data_collector=data_collector,
             genome_colors=self.genome_colors)

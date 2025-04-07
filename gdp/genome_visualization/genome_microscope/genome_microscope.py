@@ -6,14 +6,14 @@ import math
 import matplotlib.colors as mcolors
 from matplotlib.patches import Patch
 from ... import GenomeDataCollector
-from ...genome_data import GenomeMatrix
+from ...program_arguments import ProgramArguments
 
 
 class GenomeMicroscope:
 
     def __init__(
             self,
-            args: dict,
+            args: ProgramArguments,
             genome_data_collector: GenomeDataCollector,
             genome_colors):
 
@@ -23,14 +23,14 @@ class GenomeMicroscope:
         unique_neuron_types = {nt for g in neuron_types.values() for nt in g}
 
         # init variables
-        self.genome_node_size = args["node_size"]
-        self.subgraph_node_size = args["subgraph_node_size"]
+        self.genome_node_size = args.node_size
+        self.subgraph_node_size = args.subgraph_node_size
 
         # get arguments
-        self.subgraph_width = args["subgraph_width"]
-        self.subgraph_height = args["subgraph_height"]
-        self.x_spacing = args["subgraph_x_spacing"]
-        self.y_spacing = args["subgraph_y_spacing"]
+        self.subgraph_width = args.subgraph_width
+        self.subgraph_height = args.subgraph_height
+        self.x_spacing = args.subgraph_x_spacing
+        self.y_spacing = args.subgraph_y_spacing
 
         # the radius is gotten from the area
         self.genome_node_radius = (self.genome_node_size / math.pi)**(1/2)

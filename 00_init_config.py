@@ -8,4 +8,7 @@ but this file needs to be run before anything else.
 from local_util import make_config_class
 
 if __name__=="__main__":
-    make_config_class()
+
+    # It saves to the gdp folder so the gdp code can access it.
+    # This helps with IDE autocomplete features, which makes my life easier.
+    make_config_class("gdp")

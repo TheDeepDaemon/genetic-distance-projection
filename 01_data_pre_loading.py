@@ -1,6 +1,6 @@
 from gdp import GenomeMatrix, GenomeDataCollector
+from gdp.program_arguments import ProgramArguments
 from local_util import get_numbered_unique_fpath
-from program_arguments import ProgramArguments
 import os
 
 
@@ -47,9 +47,9 @@ def main():
     #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
     # NUMERICALLY ENCODE INTO A MATRIX
 
-    genome_data = GenomeMatrix()
+    genome_matrix = GenomeMatrix()
 
-    genome_data.init_data(genome_data_collector=data_collector)
+    genome_matrix.init_data(genome_data_collector=data_collector)
 
     print("Matrix created.")
 
@@ -74,7 +74,7 @@ def main():
     os.makedirs("pre_loaded_genome_data", exist_ok=True)
 
     # save the data_storage and reduced data_storage
-    genome_data.save_data(
+    genome_matrix.save_data(
         zip_fpath=save_fpath, identifying_args=program_args.get_subset(identifying_keys))
 
 if __name__=="__main__":

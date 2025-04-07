@@ -1,4 +1,5 @@
-import yaml
+import os.path
+
 from .load_config import load_program_arguments
 
 
@@ -17,7 +18,7 @@ def _infer_type(value):
         return "Any"
 
 
-def make_config_class():
+def make_config_class(program_arguments_directory):
 
     args = load_program_arguments()
 
@@ -44,5 +45,5 @@ def make_config_class():
          "        return {k: v for k, v in self.args.items() if k in keys}\n"
          "\n")
 
-    with open("program_arguments.py", "w") as f:
+    with open(os.path.join(program_arguments_directory, "program_arguments.py"), "w") as f:
         f.write(class_def)

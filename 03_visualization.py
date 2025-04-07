@@ -1,5 +1,5 @@
 from gdp import GenomeMatrix, GenomeVisualizer, GenomeDataCollector
-from program_arguments import ProgramArguments
+from gdp.program_arguments import ProgramArguments
 import os
 import datetime
 import matplotlib
@@ -73,18 +73,18 @@ def main():
     data_collector.load(f"data/{program_args.run_type}.zip")
 
     # create the genome data storage class to be used for visuals
-    genome_data = GenomeMatrix()
+    genome_matrix = GenomeMatrix()
 
     # load the processed data storage from the directory
-    genome_data.load_data(
+    genome_matrix.load_data(
         zip_fpath=os.path.join("reduced_genome_data", load_fname),
         identifying_args=program_args.get_subset(identifying_keys))
 
     if program_args.transform_to_01:
         best_genome = data_collector.get_global_best()
-        genome_data.transform_positions01(best_genome_id=best_genome)
+        genome_matrix.transform_positions01(best_genome_id=best_genome)
 
-    data_collector.set_reduced_positions(genome_data.get_positions())
+    data_collector.set_reduced_positions(genome_matrix.get_positions())
 
     #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
     # CREATE VISUALIZER AND DO VISUALIZATION
@@ -111,10 +111,8 @@ def main():
         # make sure the visualization output directory exists so we can output to it
         os.makedirs("vis_output", exist_ok=True)
 
-        file_ext = program_args.vis_image_type
-
         # do 2D visualizations
-        save_fpath = f"{save_fpath}.{file_ext}"
+        save_fpath = f"{save_fpath}.{program_args.vis_image_type}"
         genome_visualizer.visualize_genomes2D(save_fpath=save_fpath, args=program_args.args)
         save_config(save_fpath=save_fpath, args=program_args.args)
 
@@ -125,8 +123,18 @@ def main():
 
         # do 3D visualizations
         save_fpath = f"{save_fpath}.gif"
-        genome_visualizer.visualize_genomes3D(
-            save_fpath=save_fpath, args=program_args.args, title=title)
+        genome_visualizer.visualize_genomes3D_GIF(
+            save_fpath=save_fpath, args=program_args, title=title)
+        save_config(save_fpath=save_fpath, args=program_args.args)
+
+    elif visualization_type == '3D-frames':
+
+        # make sure the visualization output directory exists so we can output to it
+        os.makedirs("vis_output", exist_ok=True)
+
+        # do 3D visualizations
+        genome_visualizer.visualize_genomes3D_images(
+            save_fpath=save_fpath, args=program_args, title=title)
         save_config(save_fpath=save_fpath, args=program_args.args)
 
     elif visualization_type == 'microscope':

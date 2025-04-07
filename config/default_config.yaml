@@ -6,18 +6,26 @@ args:
   node_alpha_on_3D: 1.0
   node_alpha_off_3D: 0.1
   line_alpha_3D: 0.05
+  increment: 5
+  n_seconds: 10
+  angle_offset_3D: 15
+  num_frames: 3
+
   subgraph_node_size: 100
   subgraph_width: 0.3
   subgraph_height: 0.3
   subgraph_x_spacing: 1
   subgraph_y_spacing: 1
-  epochs: 2000
+
+  epochs: 300
   batch_size: 512
   verbose: true
   learning_rate: 0.0001
+
   add_timestamp_to_vis: true
   transform_to_01: true
   vis_image_type: "pdf"
+
   use_node_gene_data: 1
   use_edge_gene_data: 1
   use_edge_weights_data: 0
@@ -66,6 +74,9 @@ multiple_choice_args:
       selected: 1
 
     - option: "3D"
+      selected: 0
+
+    - option: "3D-frames"
       selected: 0
 
     - option: "microscope"

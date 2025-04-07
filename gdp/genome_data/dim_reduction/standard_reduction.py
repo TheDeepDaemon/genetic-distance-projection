@@ -42,7 +42,6 @@ def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int):
     Args:
         genes_matrix (np.ndarray): A 2D matrix of genes.
         reduced_size (int): The reduced size, usually 2 or 3.
-        random_state (int): The random state to start MDS with.
 
     Returns:
         np.ndarray: The reduced matrix.

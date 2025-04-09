@@ -1,6 +1,8 @@
 # genetic-distance-projection  
 A visualization method for evolutionary algorithms.
 
+**FYI: This repo is regularly updated, so this README file is currently outdated. I am leaving this note just in case someone looks at this code before I get around to updating it.**
+
 ### Project Hierarchy
 The project is made up of two main parts:
 - The `gdp` folder, which contains the `GenomeData` class, and the `GenomeVisualizer` class.

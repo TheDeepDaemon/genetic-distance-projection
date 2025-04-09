@@ -1,5 +1,4 @@
-import json
-import numpy as np
+from .dim_reduction.models import GraphingModel
 from .genome_data_collector import GenomeDataCollector
 from .dim_reduction import (
     reduce_using_neural_net,
@@ -8,11 +7,14 @@ from .dim_reduction import (
     reduce_using_svd,
     reduce_using_mds,
     reduce_using_t_sne)
+from ..program_arguments import ProgramArguments
 from enum import Enum
 import zipfile
 import io
 import os
 import datetime
+import json
+import numpy as np
 
 
 class IdentifierMismatchError(Exception):
@@ -45,24 +47,25 @@ class GenomeMatrix:
 
     # the function used to perform each type of reduction
     _REDUCTION_TYPE_FUNCTIONS = {
-        ReductionType.NEURAL_NET: lambda genome_data_mat, args: reduce_using_neural_net(
-            genome_data_mat=genome_data_mat, args=args),
-        ReductionType.SIMPLE_NEURAL_NET: lambda genome_data_mat, args: reduce_using_simple_neural_net(
-            genome_data_mat=genome_data_mat, args=args),
-        ReductionType.MDS: lambda genome_data_mat, args: reduce_using_mds(
-            genes_matrix=genome_data_mat, reduced_size=2),
-        ReductionType.PCA: lambda genome_data_mat, args: reduce_using_pca(
-            genes_matrix=genome_data_mat, reduced_size=2),
-        ReductionType.SVD: lambda genome_data_mat, args: reduce_using_svd(
-            genes_matrix=genome_data_mat, reduced_size=2),
-        ReductionType.T_SNE: lambda genome_data_mat, args: reduce_using_t_sne(
-            genes_matrix=genome_data_mat, reduced_size=2)}
+        ReductionType.NEURAL_NET: lambda self, args: reduce_using_neural_net(
+            genome_data_mat=self.genome_data_mat, args=args, model_save_fname=self.generate_model_fname(args)),
+        ReductionType.SIMPLE_NEURAL_NET: lambda self, args: reduce_using_simple_neural_net(
+            genome_data_mat=self.genome_data_mat, args=args, model_save_fname=self.generate_model_fname(args)),
+        ReductionType.MDS: lambda self, args: reduce_using_mds(
+            genes_matrix=self.genome_data_mat, reduced_size=2),
+        ReductionType.PCA: lambda self, args: reduce_using_pca(
+            genes_matrix=self.genome_data_mat, reduced_size=2),
+        ReductionType.SVD: lambda self, args: reduce_using_svd(
+            genes_matrix=self.genome_data_mat, reduced_size=2),
+        ReductionType.T_SNE: lambda self, args: reduce_using_t_sne(
+            genes_matrix=self.genome_data_mat, reduced_size=2)}
 
     def __init__(self):
         self.index_to_id = None
         self.genome_data_mat = None
         self.position_data = None
         self.reduction_type_used = None
+        self.model_save_fname = None
 
     def init_data(self, genome_data_collector: GenomeDataCollector):
         """
@@ -110,7 +113,8 @@ class GenomeMatrix:
             info = {
                 "reduction_type": rt,
                 "date_time": dt.isoformat(),
-                "identifying_args": identifying_args
+                "identifying_args": identifying_args,
+                "model_save_fname": self.model_save_fname
             }
 
             zipf.writestr("info.json", json.dumps(info))
@@ -145,6 +149,9 @@ class GenomeMatrix:
             rt = info["reduction_type"]
             if rt is not None:
                 self.reduction_type_used = ReductionType(int(rt))
+
+            if "model_save_fname" in info:
+                self.model_save_fname = info["model_save_fname"]
 
             # iterate through files in the zip file
             for fname in zipf.namelist():
@@ -230,7 +237,7 @@ class GenomeMatrix:
             raise FileNotFoundError(f"The \'{data_dir}\' directory doesn't contain available genome data saves "
                                     f"with matching keyword arguments.")
 
-    def reduce_genome(self, reduction_type: str, args: dict=None):
+    def reduce_genome(self, reduction_type: str, args: ProgramArguments):
         """
         Perform dimensionality reduction on the genome data_storage.
 
@@ -246,63 +253,11 @@ class GenomeMatrix:
             if reduction_type.lower() in str_labels:
 
                 # perform dimensionality reduction with the selected reduction type
-                self.position_data = GenomeMatrix._REDUCTION_TYPE_FUNCTIONS[rt](self.genome_data_mat, args)
+                self.position_data = GenomeMatrix._REDUCTION_TYPE_FUNCTIONS[rt](self, args)
                 self.reduction_type_used = rt # keep track of which reduction type was used
                 return # return when done so only one can be used
 
         raise ValueError(f"Reduction type not recognized: {reduction_type}")
-
-    def transform_positions01(self, best_genome_id, root_genome_id=None):
-        """
-        Perform a translation, rotation, and scale that positions the points so the starting genome position is [0, 0] and it ends up at [0, 1].
-
-        Args:
-            best_genome_id: The ID of the best genome.
-            root_genome_id: The ID of the root genome.
-        """
-
-        # if there is a root genome passed in, use it to center the data
-        if root_genome_id is not None:
-
-            # use the ID to get the index of the root genome
-            root_genome_idx = np.where(self.index_to_id == root_genome_id)[0][0]
-
-            root_genome_pos = self.position_data[root_genome_idx]
-
-            # center it at the root genome
-            self.position_data -= root_genome_pos
-
-        # use the ID to get the index of the best genome
-        best_genome_idx = np.where(self.index_to_id == best_genome_id)[0][0]
-
-        # get the position of the best genome
-        best_genome_pos = self.position_data[best_genome_idx]
-
-        # get the magnitude of the position of the best genome
-        best_genome_magnitude = np.linalg.norm(best_genome_pos)
-
-        # get the angle of rotation
-        theta = np.arctan2(float(best_genome_pos[1]), float(best_genome_pos[0]))
-
-        # get the sin and cos for the rotation matrix
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-
-        # create the rotation matrix
-        rotation_mat = np.array(
-            [
-                [cos_theta, -sin_theta],
-                [sin_theta, cos_theta]],
-            dtype=self.position_data.dtype)
-
-        # make sure it is normalized to a 0 to 1 range
-        rotation_mat /= best_genome_magnitude
-
-        # rotated positions
-        rotated_positions = np.dot(self.position_data, rotation_mat)
-
-        # set the position data
-        self.position_data = rotated_positions
 
     def package_args(self, args, **kwargs):
         """
@@ -330,3 +285,22 @@ class GenomeMatrix:
             The dictionary of positions.
         """
         return {gid: self.position_data[idx] for idx, gid in enumerate(self.index_to_id)}
+
+    def get_unreduced_gene_vectors(self):
+        """
+        Constructs a dictionary containing the position for each genome ID.
+
+        Returns:
+            The dictionary of positions.
+        """
+        return {gid: self.genome_data_mat[idx] for idx, gid in enumerate(self.index_to_id)}
+
+    def generate_model_fname(self, args: ProgramArguments):
+        details = f"{args.run_type}_{args.reduction_type}_{args.epochs}_{args.batch_size}_{args.learning_rate}"
+        dt = datetime.datetime.now()
+        fname = f"model_save_{details}_{dt.strftime("%Y-%m-%d_%H-%M-%S")}.pth"
+        self.model_save_fname = fname
+        return fname
+
+    def get_model(self, args: ProgramArguments):
+        return GraphingModel.load(os.path.join(args.model_save_dir, self.model_save_fname))

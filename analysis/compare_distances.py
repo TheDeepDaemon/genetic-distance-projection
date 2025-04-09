@@ -57,15 +57,15 @@ def compare_scaled_distances():
         identifying_args=program_args.get_subset(identifying_keys))
 
     # create the genome data storage class to be used for visuals
-    genome_data = GenomeMatrix()
+    genome_matrix = GenomeMatrix()
 
     # load the processed data storage from the directory
-    genome_data.load_data(
+    genome_matrix.load_data(
         zip_fpath=os.path.join("reduced_genome_data", load_fname),
         identifying_args=program_args.get_subset(identifying_keys))
 
     dist = get_all_distances(
-        genome_matrix=genome_data.genome_data_mat,
-        positions_matrix=genome_data.position_data)
+        genome_matrix=genome_matrix.genome_data_mat,
+        positions_matrix=genome_matrix.position_data)
 
     return dist

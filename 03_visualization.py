@@ -1,3 +1,5 @@
+import torch
+
 from gdp import GenomeMatrix, GenomeVisualizer, GenomeDataCollector
 from gdp.program_arguments import ProgramArguments
 import os
@@ -80,17 +82,19 @@ def main():
         zip_fpath=os.path.join("reduced_genome_data", load_fname),
         identifying_args=program_args.get_subset(identifying_keys))
 
-    if program_args.transform_to_01:
-        best_genome = data_collector.get_global_best()
-        genome_matrix.transform_positions01(best_genome_id=best_genome)
-
     data_collector.set_reduced_positions(genome_matrix.get_positions())
+    data_collector.set_unreduced_gene_vectors(genome_matrix.get_unreduced_gene_vectors())
+
+    model = genome_matrix.get_model(args=program_args)
 
     #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
     # CREATE VISUALIZER AND DO VISUALIZATION
 
     # create the visualizer
     genome_visualizer = GenomeVisualizer(genome_data_collector=data_collector)
+
+    if model is not None:
+        genome_visualizer.nn_model = model
 
     # set colors
     genome_groups = data_collector.get_genome_attribute_by_key("group")

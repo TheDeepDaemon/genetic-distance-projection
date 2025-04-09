@@ -174,3 +174,4 @@ reduced_genome_data/*
 vis_output/*
 vis_archive/*
 program_arguments.py
+nn_models/*

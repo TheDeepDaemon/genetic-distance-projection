@@ -271,6 +271,10 @@ class GenomeDataCollector:
         for gid, pos in position_data.items():
             self._population_info[gid]["reduced_position"] = pos
 
+    def set_unreduced_gene_vectors(self, gene_data: dict):
+        for gid, val in gene_data.items():
+            self._population_info[gid]["genes"] = val
+
     def make_graph(self):
         """
         Convert this data_storage to a networkx graph that is usable.
@@ -291,27 +295,55 @@ class GenomeDataCollector:
 
         return graph
 
-    def get_3D_positions(self, genome_id_axis=0):
+    def get_rotation_to01(self, root_genome_id=None):
         """
-        Constructs a dictionary containing the position for each genome ID, where a 3rd axis is the genome ID.
+        Get the rotation mat and offset needed to perform a translation, rotation, and scale
+        that positions the points so the starting genome position is [0, 0] and it ends up at [0, 1].
 
         Args:
-            genome_id_axis: The axis that genome ID should be.
+            root_genome_id: The ID of the root genome.
 
-        Returns:
-            The dictionary of 3D positions.
+        Returns: The transformation to a 0 to 1 coordinate space.
         """
-        if genome_id_axis==0:
-            return {
-                gid: (gid, info["reduced_position"][0], info["reduced_position"][1])
-                for gid, info in self._population_info.items()}
-        elif genome_id_axis==1:
-            return {
-                gid: (info["reduced_position"][0], gid, info["reduced_position"][1])
-                for gid, info in self._population_info.items()}
-        elif genome_id_axis==2:
-            return {
-                gid: (info["reduced_position"][0], info["reduced_position"][1], gid)
-                for gid, info in self._population_info.items()}
+        positions = self.get_genome_attribute_by_key("reduced_position")
+        positions = {gid: np.array(pos, dtype=np.float32) for gid, pos in positions.items()}
+
+        best_genome_id = self.get_global_best()
+
+        # if there is a root genome passed in, use it to center the data
+        if root_genome_id is not None:
+
+            root_genome_pos = positions[root_genome_id]
+
+            offset = root_genome_pos
+
+            # center it at the root genome
+            positions = {gid: (pos - root_genome_pos) for gid, pos in positions.items()}
         else:
-            raise ValueError(f"Axis: {genome_id_axis} is out of bounds.")
+            offset = np.zeros(2, dtype=np.float32)
+
+        # get the position of the best genome
+        best_genome_pos = positions[best_genome_id]
+
+        # get the magnitude of the position of the best genome
+        best_genome_magnitude = np.linalg.norm(best_genome_pos)
+
+        # get the angle of rotation
+        theta = np.arctan2(float(best_genome_pos[1]), float(best_genome_pos[0]))
+
+        # get the sin and cos for the rotation matrix
+        cos_theta = np.cos(theta)
+        sin_theta = np.sin(theta)
+
+        # create the rotation matrix
+        rotation_mat = np.array(
+            [
+                [cos_theta, -sin_theta],
+                [sin_theta, cos_theta]],
+            dtype=np.float32)
+
+        # make sure it is normalized to a 0 to 1 range
+        rotation_mat /= best_genome_magnitude
+
+        # return rotated positions
+        return rotation_mat, offset

@@ -10,6 +10,9 @@ args:
   n_seconds: 10
   angle_offset_3D: 15
   num_frames: 3
+  trace_best: 0
+  trace_gene_origins: 0
+  interp_factor: 30
 
   subgraph_node_size: 100
   subgraph_width: 0.3
@@ -25,6 +28,8 @@ args:
   add_timestamp_to_vis: true
   transform_to_01: true
   vis_image_type: "pdf"
+
+  model_save_dir: nn_models
 
   use_node_gene_data: 1
   use_edge_gene_data: 1
@@ -80,4 +85,11 @@ multiple_choice_args:
       selected: 0
 
     - option: "microscope"
+      selected: 0
+
+  interpolation_type:
+    - option: cubic
+      selected: 1
+
+    - option: nn
       selected: 0

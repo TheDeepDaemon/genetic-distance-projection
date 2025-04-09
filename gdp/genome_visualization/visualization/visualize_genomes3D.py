@@ -1,19 +1,19 @@
+from ...genome_data import GenomeDataCollector
+from ...program_arguments import ProgramArguments
 import numpy as np
 import matplotlib.pyplot as plt
 from .arrow3d import Arrow3D
 import io
-import imageio.v2 as imageio
-from ...genome_data import GenomeDataCollector
-from .interp_3d_path import disp_interpolated_points
 import os
-from ...program_arguments import ProgramArguments
+import imageio.v2 as imageio
+from .transform_01 import apply_transformation_to01
 
 
 def _visualize_genomes3D(
         genome_data_collector: GenomeDataCollector,
         genome_colors,
         args: ProgramArguments,
-        paths_to_trace: list=None,
+        traces: list=None,
         dimmer_list: list=None,
         title: str=None):
     """
@@ -23,7 +23,7 @@ def _visualize_genomes3D(
         genome_data_collector: The genome data.
         genome_colors: The node colors for the genomes.
         args: Passed arguments and their keywords.
-        paths_to_trace: The list of paths to trace, and their color maps.
+        traces: The list of paths to trace, and their color maps.
         dimmer_list: A list of nodes to dim.
         title: The title to show in the 3D graph plot.
     """
@@ -40,32 +40,39 @@ def _visualize_genomes3D(
 
     # function arguments
     graph = genome_data_collector.make_graph()
-    positions = genome_data_collector.get_3D_positions()
 
-    for node in graph.nodes:
-        x, y, z = positions[node]
+    positions = genome_data_collector.get_genome_attribute_by_key("reduced_position")
+
+    if args.transform_to_01:
+        rotation_mat, offset = genome_data_collector.get_rotation_to01()
+        positions = apply_transformation_to01(positions=positions, rotation_mat=rotation_mat, offset=offset)
+
+    for node_gid in graph.nodes:
+        x, y = positions[node_gid]
 
         alpha = args.node_alpha_on_3D
 
-        if node in dimmer_list:
+        if node_gid in dimmer_list:
             alpha = args.node_alpha_off_3D
 
         ax.plot(
-            x, y, z,
+            node_gid, x, y,
             marker='o',
             markersize=node_size,
-            color=genome_colors[node],
+            color=genome_colors[node_gid],
             alpha=alpha)
 
     for edge in graph.edges:
-        from_node, to_node = edge
-        start_position = positions[from_node]
-        end_position = positions[to_node]
+        from_node_gid, to_node_gid = edge
+
+        start_pos2d = positions[from_node_gid]
+
+        end_pos2d = positions[to_node_gid]
 
         a = Arrow3D(
-            [start_position[0], end_position[0]],
-            [start_position[1], end_position[1]],
-            [start_position[2], end_position[2]],
+            [from_node_gid, to_node_gid],
+            [start_pos2d[0], end_pos2d[0]],
+            [start_pos2d[1], end_pos2d[1]],
             mutation_scale=arrow_size,
             lw=line_width,
             arrowstyle="-|>",
@@ -75,9 +82,19 @@ def _visualize_genomes3D(
 
         ax.add_artist(a)
 
-    if paths_to_trace is not None:
-        for path, cmap in paths_to_trace:
-            disp_interpolated_points(ax=ax, points=path, cmap=cmap)
+    if traces is not None:
+        for interpolated_positions, interpolated_times, cols in traces:
+
+            if args.transform_to_01:
+                interpolated_positions -= offset
+                interpolated_positions = np.dot(interpolated_positions, rotation_mat)
+
+            ax.scatter(
+                interpolated_times,
+                interpolated_positions[:, 0],
+                interpolated_positions[:, 1],
+                c=cols
+            )
 
     ax.set_xlabel('Generation Number (Creation Time)')
     ax.set_ylabel('X')
@@ -96,7 +113,7 @@ def visualize_genomes3D_GIF(
         genome_data_collector: GenomeDataCollector,
         genome_colors,
         args: ProgramArguments,
-        paths_to_trace: list=None,
+        traces: list=None,
         dimmer_list: list=None,
         title: str=None):
 
@@ -104,7 +121,7 @@ def visualize_genomes3D_GIF(
         genome_data_collector=genome_data_collector,
         genome_colors=genome_colors,
         args=args,
-        paths_to_trace=paths_to_trace,
+        traces=traces,
         dimmer_list=dimmer_list,
         title=title)
 
@@ -136,7 +153,7 @@ def visualize_genomes3D_images(
         genome_data_collector: GenomeDataCollector,
         genome_colors,
         args: ProgramArguments,
-        paths_to_trace: list=None,
+        traces: list=None,
         dimmer_list: list=None,
         title: str=None):
 
@@ -144,7 +161,7 @@ def visualize_genomes3D_images(
         genome_data_collector=genome_data_collector,
         genome_colors=genome_colors,
         args=args,
-        paths_to_trace=paths_to_trace,
+        traces=traces,
         dimmer_list=dimmer_list,
         title=title)
 

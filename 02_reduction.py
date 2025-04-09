@@ -36,7 +36,7 @@ def main():
         identifying_args=program_args.get_subset(input_identifying_keys))
 
     # do reduction
-    genome_matrix.reduce_genome(reduction_type=program_args.reduction_type, args=program_args.args)
+    genome_matrix.reduce_genome(reduction_type=program_args.reduction_type, args=program_args)
 
     #  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
     # SAVE THE REDUCED DATA

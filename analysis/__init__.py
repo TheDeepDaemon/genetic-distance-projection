@@ -1,2 +1,2 @@
-from .compare_distances import compare_scaled_distances
+from .compare_distances import get_all_distances
 from .gene_counter import plot_genes_vs_generation_number

@@ -1,6 +1,4 @@
 import numpy as np
-from ..gdp import GenomeDataCollector
-from ..program_arguments import ProgramArguments
 import matplotlib.pyplot as plt
 import matplotlib
 
@@ -16,17 +14,11 @@ _run_type_titles = {
 }
 
 
-def plot_genes_vs_generation_number():
+def plot_genes_vs_generation_number(program_args, data_collector):
 
     # set the fonts for matplotlib
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
-
-    # load the program arguments
-    program_args = ProgramArguments()
-
-    data_collector = GenomeDataCollector()
-    data_collector.load(f"data/{program_args.run_type}.zip")
 
     genome_ids = data_collector.get_unique_genome_id_list()
     genome_ids.sort()

@@ -1,8 +1,5 @@
 import numpy as np
 import torch
-import os
-from ..gdp import GenomeMatrix
-from ..gdp.program_arguments import ProgramArguments
 
 
 def compare_flattened_distances(gen_distances, pos_distances):
@@ -35,37 +32,3 @@ def get_all_distances(
     position_distances = get_pwise_distances(positions_matrix)
 
     return compare_flattened_distances(genome_distances, position_distances)
-
-
-def compare_scaled_distances():
-    # load the program arguments
-    program_args = ProgramArguments()
-
-    identifying_keys = [
-        "reduction_type",
-        "run_type",
-        "use_node_gene_data",
-        "use_edge_gene_data",
-        "use_edge_weights_data",
-        "use_recurrent_edge_gene_data",
-        "use_recurrent_edge_weights_data"
-    ]
-
-    # find the genome data to use
-    load_fname = GenomeMatrix.find_latest_genome_data(
-        data_dir="reduced_genome_data",
-        identifying_args=program_args.get_subset(identifying_keys))
-
-    # create the genome data storage class to be used for visuals
-    genome_matrix = GenomeMatrix()
-
-    # load the processed data storage from the directory
-    genome_matrix.load_data(
-        zip_fpath=os.path.join("reduced_genome_data", load_fname),
-        identifying_args=program_args.get_subset(identifying_keys))
-
-    dist = get_all_distances(
-        genome_matrix=genome_matrix.genome_data_mat,
-        positions_matrix=genome_matrix.position_data)
-
-    return dist

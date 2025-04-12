@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import os
 from ..gdp import GenomeMatrix
-from ..program_arguments import ProgramArguments
+from ..gdp.program_arguments import ProgramArguments
 
 
 def compare_flattened_distances(gen_distances, pos_distances):

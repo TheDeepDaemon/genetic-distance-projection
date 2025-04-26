@@ -50,15 +50,10 @@ class ReducedGenomeData(GenomeData):
             super().__init__(source=reduced_genome_data, *args, **kwargs)
             self.encoded_genomes = copy.deepcopy(reduced_genome_data.encoded_genomes)
             self.reduced_positions = copy.deepcopy(reduced_genome_data.reduced_positions)
-        elif isinstance(source, (GenomeData, str, os.PathLike)):
+        else:
             self.encoded_genomes = None
             self.reduced_positions = None
             super().__init__(source=source, *args, **kwargs)
-        else:
-            self._population = dict()
-            self._population_info = dict()
-            self.encoded_genomes = None
-            self.reduced_positions = None
 
     @staticmethod
     def load(zip_fpath: Union[str, os.PathLike]):

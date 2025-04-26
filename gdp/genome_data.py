@@ -25,28 +25,60 @@ class GenomeData:
             self._minimizing_fitness = True
 
     def save(self, zip_fpath: Union[str, os.PathLike], **kwargs):
+        """
+        Save the genome data to a zip file containing a set of JSONs.
 
+        Args:
+            zip_fpath: The filepath of the zip file.
+        """
         with zipfile.ZipFile(zip_fpath, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
             self._save_contents(zip_file=zipf, **kwargs)
 
         print(f"Genome data saved to {zip_fpath}")
 
     def _save_contents(self, zip_file, **kwargs):
+        """
+        Save the contents of this object to an opened zip file.
+
+        Args:
+            zip_file: The file (not path) we are writing to.
+        """
         kwargs.setdefault('indent', 4)
         zip_file.writestr("population.json", json.dumps(self._population, **kwargs))
         zip_file.writestr("population_info.json", json.dumps(self._population_info, **kwargs))
 
     @staticmethod
     def load(zip_fpath: Union[str, os.PathLike]):
+        """
+        Load a genome data object from a zip file.
+
+        Args:
+            zip_fpath: The filepath to load from.
+
+        Returns:
+            A genome data object.
+        """
         genome_data: GenomeData = GenomeData()
         genome_data._load_from_path(zip_fpath=zip_fpath)
         return genome_data
 
     def _load_from_path(self, zip_fpath: Union[str, os.PathLike]):
+        """
+        Given a path, load a zip file to this object.
+
+        Args:
+            zip_fpath: The path to load from.
+        """
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
             self._load_contents(zip_file=zipf)
 
     def _load_contents(self, zip_file):
+        """
+        Load the contents of the zip file to this object.
+
+        Args:
+            zip_file: The zip file (not path) we are reading from.
+        """
 
         with zip_file.open("population.json") as f:
             population = json.loads(f.read().decode('utf-8'))
@@ -58,6 +90,15 @@ class GenomeData:
 
     @staticmethod
     def _get_info(zip_file):
+        """
+        Get the info from this zip file.
+
+        Args:
+            zip_file: The actual file.
+
+        Returns:
+            A dictionary.
+        """
         info_fname = "info.json"
         if info_fname in zip_file.namelist():
             with zip_file.open(info_fname) as f:
@@ -65,22 +106,60 @@ class GenomeData:
 
     @staticmethod
     def get_info(zip_fpath: str):
+        """
+        Get the info from this zip file.
+
+        Args:
+            zip_fpath: The zip file path.
+
+        Returns:
+            A dictionary.
+        """
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
             return GenomeData._get_info(zipf)
 
     @staticmethod
     def get_save_datetime(zip_fpath: str):
+        """
+        Get the datatime of this save.
+
+        Args:
+            zip_fpath: The zip file path.
+
+        Returns:
+            The datetime object.
+        """
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
             info = GenomeData._get_info(zipf)
             return datetime.fromisoformat(info["date_time"])
 
     @staticmethod
     def info_matches(zip_fpath: str, identifying_args: dict):
+        """
+        Check if all info matches.
+
+        Args:
+            zip_fpath: The zip file path.
+            identifying_args: The identifiers.
+
+        Returns:
+            Whether it matches.
+        """
         info = GenomeData.get_info(zip_fpath)
         return info["identifying_args"] == identifying_args
 
     @staticmethod
     def get_all_matching_saves(dir_path, identifying_args):
+        """
+        Get a list of the saves with matching identifiers.
+
+        Args:
+            dir_path: The directory to search.
+            identifying_args: The identifiers.
+
+        Returns:
+            A list of file paths.
+        """
         # get all valid files
         save_paths = [
             os.path.join(dir_path, fname) for fname in os.listdir(dir_path)
@@ -93,6 +172,16 @@ class GenomeData:
 
     @staticmethod
     def find_latest_genome_data(dir_path, identifying_args: dict):
+        """
+        Find the latest genome data save that matches.
+
+        Args:
+            dir_path: The directory to search.
+            identifying_args: The identifiers.
+
+        Returns:
+            The file path of the save.
+        """
 
         datetimes = dict()
 

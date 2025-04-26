@@ -49,3 +49,6 @@ class GenomeDataCollector(GenomeData):
 
             for gene_key, gene_value in new_genes.items():
                 self.set_gene_value(genome_id=genome_id, gene_key=gene_key, gene_value=gene_value)
+
+    def get_if_collected(self, genome_id):
+        return genome_id in self._population_info

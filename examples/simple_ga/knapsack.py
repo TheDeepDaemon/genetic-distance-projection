@@ -1,4 +1,3 @@
-import os
 import json
 
 
@@ -17,14 +16,12 @@ class Knapsack:
 
             self.items = [{'value': v, 'weight': w} for v, w in zip(item_values, item_weights)]
 
-    def evaluate_backpack(self, genome):
+    def evaluate_backpack(self, item_vector):
         """
             Determine the value of the backpack.
             Adds up the values, only returns the summed
             value when the weight is less than the threshold.
         """
-
-        item_vector = genome.data
 
         # confirm that it is a valid array
         assert (len(item_vector) == self.num_items)
@@ -48,7 +45,7 @@ class Knapsack:
 
         # only return the summed value if
         # the weight is not over the threshold
-        # of MAX_WEIGHT
+        # of max_weight
         if total_weight <= self.max_weight:
             return total_value
         else:

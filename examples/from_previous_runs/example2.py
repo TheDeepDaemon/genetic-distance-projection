@@ -22,6 +22,14 @@ import os
 
 
 def main(data_path, use_gene_data, use_weight_data):
+    """
+    The second example of GDP being used with a neuroevolution algorithm.
+
+    Args:
+        data_path: The path to retrieve the data from.
+        use_gene_data: Whether to include gene data.
+        use_weight_data: Whether to include weight data.
+    """
 
     genome_data_collector = GenomeDataCollector.load(data_path)
     print(f"Genome data loaded from {data_path}")

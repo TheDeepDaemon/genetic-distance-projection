@@ -15,6 +15,9 @@ class _Config_:
 def set_config_defaults(source_yaml_file: Union[str, os.PathLike]=None):
     if source_yaml_file is None:
         source_yaml_file = Path(__file__).parent / "defaults.yaml"
+    else:
+        full_path = os.path.abspath(source_yaml_file)
+        print(f"Loading config from: {full_path}")
 
     with open(source_yaml_file, "r", encoding="utf-8") as file:
         _Config_._DEFAULT_KWARGS_ = yaml.safe_load(file)

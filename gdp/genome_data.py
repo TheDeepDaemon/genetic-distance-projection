@@ -44,6 +44,17 @@ class GenomeData:
             zip_file: The file (not path) we are writing to.
         """
         kwargs.setdefault('indent', 4)
+
+        # store the info in a dictionary
+        info = {
+            "date_time": datetime.now().isoformat(),
+            "identifying_args": kwargs.pop("identifying_args", None)
+        }
+
+        # save the info
+        zip_file.writestr("info.json", json.dumps(info, **kwargs))
+
+        # save the population dicts
         zip_file.writestr("population.json", json.dumps(self._population, **kwargs))
         zip_file.writestr("population_info.json", json.dumps(self._population_info, **kwargs))
 
@@ -89,7 +100,7 @@ class GenomeData:
             self._population_info = {int(k): v for k, v in population_info.items()}
 
     @staticmethod
-    def _get_info(zip_file):
+    def _get_save_info(zip_file):
         """
         Get the info from this zip file.
 
@@ -105,7 +116,7 @@ class GenomeData:
                 return json.loads(f.read().decode('utf-8'))
 
     @staticmethod
-    def get_info(zip_fpath: str):
+    def get_save_info(zip_fpath: str):
         """
         Get the info from this zip file.
 
@@ -116,7 +127,7 @@ class GenomeData:
             A dictionary.
         """
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
-            return GenomeData._get_info(zipf)
+            return GenomeData._get_save_info(zipf)
 
     @staticmethod
     def get_save_datetime(zip_fpath: str):
@@ -130,11 +141,11 @@ class GenomeData:
             The datetime object.
         """
         with zipfile.ZipFile(zip_fpath, "r") as zipf:
-            info = GenomeData._get_info(zipf)
+            info = GenomeData._get_save_info(zipf)
             return datetime.fromisoformat(info["date_time"])
 
     @staticmethod
-    def info_matches(zip_fpath: str, identifying_args: dict):
+    def save_info_matches(zip_fpath: str, identifying_args: dict):
         """
         Check if all info matches.
 
@@ -145,7 +156,7 @@ class GenomeData:
         Returns:
             Whether it matches.
         """
-        info = GenomeData.get_info(zip_fpath)
+        info = GenomeData.get_save_info(zip_fpath)
         return info["identifying_args"] == identifying_args
 
     @staticmethod
@@ -168,7 +179,7 @@ class GenomeData:
         # return the ones that have matching identifying arguments
         return [
             fpath for fpath in save_paths
-            if GenomeData.info_matches(fpath, identifying_args)]
+            if GenomeData.save_info_matches(fpath, identifying_args)]
 
     @staticmethod
     def find_latest_genome_data(dir_path, identifying_args: dict):
@@ -207,3 +218,14 @@ class GenomeData:
             assert(isinstance(genome, dict))
             unique_gene_keys.update(set(genome.keys()))
         return list(unique_gene_keys)
+
+    def get_info(self, genome_id):
+        """
+        Get the info for the population member with this genome ID.
+        Args:
+            genome_id:
+
+        Returns:
+            The info for the population member with this genome ID.
+        """
+        return self._population_info.get(genome_id)

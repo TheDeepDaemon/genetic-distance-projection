@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from .model import GraphingModel
 from .pair_training import fit
+from ...__config__ import _set_kwargs_defaults_
 import os
 
 
@@ -18,6 +19,7 @@ def reduce_using_neural_net(
 
     Returns: The reduced genome data_storage.
     """
+    _set_kwargs_defaults_(kwargs)
 
     kwargs.setdefault("batch_size", 64)
     kwargs.setdefault("epochs", 1)

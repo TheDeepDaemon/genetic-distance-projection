@@ -17,19 +17,26 @@ sys.path.append(str(project_root))
 """
  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
 """
-from gdp import GenomeDataCollector, ReducedGenomeData, GenomeVisualizer, reduce_using_pca
+from gdp import GenomeDataCollector, ReducedGenomeData, GenomeVisualizer, reduce_using_pca, GenomeData
+from gdp import set_config_defaults
 import os
+from datetime import datetime
 
 
-def main(data_path, use_gene_data, use_weight_data):
+def main(data_directory, data_source_json, use_gene_data, use_weight_data):
     """
     The second example of GDP being used with a neuroevolution algorithm.
 
     Args:
-        data_path: The path to retrieve the data from.
+        data_directory:
+        data_source_json:
         use_gene_data: Whether to include gene data.
         use_weight_data: Whether to include weight data.
     """
+
+    data_path = os.path.join(data_directory, data_source_json)
+
+    set_config_defaults("defaults.yaml")
 
     genome_data_collector = GenomeDataCollector.load(data_path)
     print(f"Genome data loaded from {data_path}")
@@ -58,28 +65,46 @@ def main(data_path, use_gene_data, use_weight_data):
             func=lambda data_entry: {"recurrent_edge_weight:{}".format(gre["n"]): float(gre["weight"]) for gre in data_entry},
             key="recurrent_edges")
 
-    os.makedirs("collected_data", exist_ok=True)
-    genome_data_collector.save("collected_data/example_collected_data.zip")
-
     # dimensionality reduction
     reduced_genome_data = ReducedGenomeData.perform_reduction(
-        source="collected_data/example_collected_data.zip",
+        source=genome_data_collector,
         dim_reduction_function=reduce_using_pca)
 
+    # set the arguments used to identify it
+    identifying_args = {
+        "data_source": data_source_json,
+        "reduction_method": 'pca'
+    }
+
+    # make the directory
     os.makedirs("reduced_data", exist_ok=True)
-    reduced_genome_data.save("reduced_data/example_reduced_data.zip")
+    reduced_genome_data.save(
+        f"reduced_data/reduced_data_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.zip",
+        identifying_args=identifying_args)
+
+    # doing this to demonstrate how we find the latest save and load it
+    saved_data_path = GenomeData.find_latest_genome_data(
+        "reduced_data",
+        identifying_args=identifying_args)
+
+    print(f"Loading genome data from: {saved_data_path}")
 
     # visualize
-    genome_visualizer = GenomeVisualizer(source="reduced_data/example_reduced_data.zip")
+    genome_visualizer = GenomeVisualizer(source=saved_data_path)
 
     genome_visualizer.set_genome_colors_by_group()
 
     os.makedirs("output", exist_ok=True)
-    genome_visualizer.visualize_genomes2D(save_fpath="output/example_visuals")
+    genome_visualizer.visualize_genomes3D_images(
+        save_fpath=f"output/visuals_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}",
+        title="example title")
 
 
 if __name__=="__main__":
-    data_directory = "examm-neat-data"
+    data_directory = "examm_data"
     data_source_json = "no_enabled_info_repop_1epoch.zip"
-    data_path = os.path.join(data_directory, data_source_json)
-    main(data_path=data_path, use_gene_data=True, use_weight_data=False)
+    main(
+        data_directory=data_directory,
+        data_source_json=data_source_json,
+        use_gene_data=True,
+        use_weight_data=False)

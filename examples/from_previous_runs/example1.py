@@ -18,6 +18,7 @@ sys.path.append(str(project_root))
 """
 from gdp import GenomeDataCollector, ReducedGenomeData, GenomeVisualizer, reduce_using_pca
 import os
+from datetime import datetime
 
 
 def main(data_path, use_gene_data, use_weight_data):
@@ -68,11 +69,13 @@ def main(data_path, use_gene_data, use_weight_data):
     genome_visualizer.set_genome_colors_by_group()
 
     os.makedirs("output", exist_ok=True)
-    genome_visualizer.visualize_genomes2D(save_fpath="output/example_visuals")
+    genome_visualizer.visualize_genomes3D_images(
+        save_fpath=f"output/visuals_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}",
+        title="example title")
 
 
 if __name__=="__main__":
-    data_directory = "examm-neat-data"
+    data_directory = "examm_data"
     data_source_json = "no_enabled_info_repop_1epoch.zip"
     data_path = os.path.join(data_directory, data_source_json)
     main(data_path=data_path, use_gene_data=True, use_weight_data=False)

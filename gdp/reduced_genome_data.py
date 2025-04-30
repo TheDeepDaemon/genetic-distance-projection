@@ -89,6 +89,8 @@ class ReducedGenomeData(GenomeData):
     def _save_contents(self, zip_file, **kwargs):
         super()._save_contents(zip_file, **kwargs)
 
+        kwargs.pop("identifying_args")
+
         kwargs.setdefault('indent', 4)
         encoded_genomes = {k: v.tolist() for k, v in self.encoded_genomes.items()}
         zip_file.writestr("encoded_genomes.json", json.dumps(encoded_genomes, **kwargs))

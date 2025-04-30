@@ -13,10 +13,7 @@ For the latest versions of the required packages, you can also just use:
 There are two examples listed in the examples folder designed to show people how to actually use the `gdp` module.     
 
 ## Example: From Previous EXAMM and NEAT Runs
-This is an example of GDP being run on data collected from previous EXAMM and NEAT runs. If you want to run it, you'll have to download the data from the repository it is stored in. It is stored in the repository at `https://github.com/TheDeepDaemon/examm-neat-data`. It is stored in a separate repository so we aren't forcing everyone who clones this repo to download all of this data.     
-
-This means that you will need to open the terminal, navigate to the directory `examples/from_previous_runs` and use the command:    
-`git clone https://github.com/TheDeepDaemon/examm-neat-data.git`    
+This is an example of GDP being run on data collected from previous EXAMM and NEAT runs. There is a small data file in the `examm_data` directory that this can be run on.
 
 Once that is done, you should be able to run this example without trouble. To do this, just activate the Python virtual environment and run `example1.py` or `example2.py`.   
 

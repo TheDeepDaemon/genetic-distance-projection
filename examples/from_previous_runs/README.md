@@ -1,5 +1,5 @@
 # Example: From Previous Runs  
   
 Code in this folder shows how you can load data from previous EXAMM or NEAT runs and run visualizations on them.   
-  
-Before doing anything, you need to clone the repository from `https://github.com/TheDeepDaemon/examm-neat-data` into this folder. Instructions for doing so are in the README file of the root directory of this repository. 
+
+There is a data file in the `examm_data` folder that serves as a small example of data that was collected from a EXAMM run. 

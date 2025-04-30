@@ -173,7 +173,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-examples/from_previous_runs/examm-neat-data/*
 examples/from_previous_runs/collected_data/*
 examples/from_previous_runs/reduced_data/*
 examples/from_previous_runs/output/*

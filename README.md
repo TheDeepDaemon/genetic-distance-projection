@@ -18,7 +18,7 @@ This is an example of GDP being run on data collected from previous EXAMM and NE
 Once that is done, you should be able to run this example without trouble. To do this, just activate the Python virtual environment and run `example1.py` or `example2.py`.   
 
 ## Example: Simple GA    
-This is an example of how the `GenomeDataCollector` class can be used to collect data during a GA run. This does not require any data to be installed. To do this, activate the Python virtual environment and run `example.py`.
+This is an example of how the `GenomeDataCollector` class can be used to collect data during a GA run. This does not require any data to be installed. To do this, activate the Python virtual environment, change the working directory to `simple_ga` (with `cd examples/simple_ga`), and run `example.py`.
 
 In this case, a simple genetic algorithm is solving the [knapsack problem](https://en.wikipedia.org/wiki/Knapsack_problem). 
 

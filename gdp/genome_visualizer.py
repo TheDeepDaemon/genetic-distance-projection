@@ -2,7 +2,6 @@ from .reduced_genome_data import ReducedGenomeData
 from ._visualization_ import (
     visualize_genomes2D, calc_colors_by_fitness, calc_colors_by_group, trace_gene_origin,
     visualize_genomes3D_GIF, visualize_genomes3D_images)
-from ._genome_microscope_ import GenomeMicroscope
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
@@ -496,9 +495,3 @@ class GenomeVisualizer(ReducedGenomeData):
             dimmer_list=self.dimmer_list,
             traces=traces,
             title=title, **kwargs)
-
-    def visualize_genomes_microscope(self, **kwargs):
-        GenomeMicroscope(
-            genome_visualizer=self,
-            genome_colors=self.genome_colors,
-            **kwargs)

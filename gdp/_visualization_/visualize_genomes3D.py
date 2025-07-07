@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from .arrow3d import Arrow3D
+import imageio.v2 as imageio
 import io
 import os
-import imageio.v2 as imageio
 
 
 def _visualize_genomes3D(
@@ -15,7 +15,7 @@ def _visualize_genomes3D(
         dimmer_list: list=None,
         **kwargs):
     """
-    Perform the 3D _visualization_, save to a GIF.
+    Perform the 3D visualization, save to a GIF.
 
     Args:
         genome_data_collector: The genome data.
@@ -134,7 +134,7 @@ def visualize_genomes3D_GIF(
         ax.view_init(elev=elev, azim=azim)
 
         buffer = io.BytesIO()
-        plt.savefig(buffer, format=image_type)
+        plt.savefig(buffer, format='png')
         buffer.seek(0)
         frames.append(imageio.imread(buffer))
         buffer.close()
@@ -147,7 +147,7 @@ def visualize_genomes3D_GIF(
         save_fpath += ".gif"
 
     # save the GIF
-    imageio.mimsave(save_fpath, frames, fps=len(viewpoints) / n_seconds)
+    imageio.mimsave(save_fpath, frames, fps=len(viewpoints) / n_seconds, loop=0)
     print(f"GIF saved at {save_fpath}")
 
     plt.close(fig)
@@ -177,7 +177,6 @@ def visualize_genomes3D_images(
     num_frames = kwargs["num_frames"]
 
     increment = 360 / num_frames
-
 
     angles = np.arange(0, 360, increment) - 180 + kwargs["angle_offset_3D"]
     viewpoints = [(30, angle) for angle in angles]

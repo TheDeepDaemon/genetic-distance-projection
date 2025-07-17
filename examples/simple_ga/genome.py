@@ -77,8 +77,8 @@ def genetic_algorithm_step(
     offspring = []
     for _ in range(offspring_count):
         # choose two parents randomly
-        r1, r2 = np.random.choice(len(new_population), size=2, replace=False)
-        parents = [new_population[r1], new_population[r2]]
+        r1, r2 = np.random.choice(len(elites), size=2, replace=False)
+        parents = [elites[r1], elites[r2]]
 
         # create a new genome with them
         new_genome = Genome(

@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 from sklearn.manifold import TSNE
 from sklearn.metrics import pairwise_distances
+import warnings
 
 
 def reduce_using_pca(genes_matrix: np.ndarray, reduced_size: int=2):
@@ -16,8 +17,11 @@ def reduce_using_pca(genes_matrix: np.ndarray, reduced_size: int=2):
     Returns:
         np.ndarray: The reduced matrix.
     """
-    pca = PCA(n_components=reduced_size)
-    return pca.fit_transform(genes_matrix)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        pca = PCA(n_components=reduced_size)
+        return pca.fit_transform(genes_matrix)
 
 
 def reduce_using_svd(genes_matrix: np.ndarray, reduced_size: int=2):

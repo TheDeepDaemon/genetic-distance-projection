@@ -18,8 +18,8 @@ class GraphingModel(nn.Module):
 
         self.layer1 = nn.Linear(genome_size, h1)
         self.layer2 = nn.Linear(h1, h2)
-        self.output_layer = nn.Linear(h2, 2)
-        self.gamma = nn.Parameter(torch.tensor(1.0))
+        self.output_layer = nn.Linear(h2, 2) # maps to 2D
+        self.gamma = nn.Parameter(torch.tensor(1.0)) # init to 1
 
     def forward(self, x):
         x = torch.nn.functional.leaky_relu(self.layer1(x))
@@ -36,7 +36,7 @@ class GraphingModel(nn.Module):
             count = 0
             for x_batch_ in dataloader:
                 x_batch = x_batch_[0]
-                x_batch = x_batch[:(len(x_batch) // 2) * 2]
+                x_batch = x_batch[:(len(x_batch) // 2) * 2] # make sure it's divisible by two
                 half_ = len(x_batch) // 2
                 x1 = x_batch[:half_]
                 x2 = x_batch[half_:]

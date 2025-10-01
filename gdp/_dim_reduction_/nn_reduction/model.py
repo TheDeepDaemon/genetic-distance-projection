@@ -16,14 +16,17 @@ class GraphingModel(nn.Module):
 
         self.genome_size = genome_size
 
-        self.layer1 = nn.Linear(genome_size, h1)
+        self.layer1 = nn.EmbeddingBag(num_embeddings=genome_size, embedding_dim=h1, mode='sum')
         self.layer2 = nn.Linear(h1, h2)
         self.output_layer = nn.Linear(h2, 2) # maps to 2D
         self.gamma = nn.Parameter(torch.tensor(1.0)) # init to 1
 
     def forward(self, x):
-        x = torch.nn.functional.leaky_relu(self.layer1(x))
-        x = torch.nn.functional.leaky_relu(self.layer2(x))
+        indices, weights, offsets = x
+        x = self.layer1(indices, offsets, per_sample_weights=weights)
+        x = torch.nn.functional.leaky_relu(x)
+        x = self.layer2(x)
+        x = torch.nn.functional.leaky_relu(x)
         x = self.output_layer(x)
         return x * self.gamma
 
@@ -34,22 +37,22 @@ class GraphingModel(nn.Module):
         with torch.no_grad():
             total = 0.0
             count = 0
-            for x_batch_ in dataloader:
-                x_batch = x_batch_[0]
-                x_batch = x_batch[:(len(x_batch) // 2) * 2] # make sure it's divisible by two
-                half_ = len(x_batch) // 2
-                x1 = x_batch[:half_]
-                x2 = x_batch[half_:]
+            for x1, x2, distances in dataloader:
 
-                x1 = x1.to(device)
-                x2 = x2.to(device)
+                x1_indices, x1_weights, x1_offsets = x1
+                x2_indices, x2_weights, x2_offsets = x2
 
-                y1 = self(x1)
-                y2 = self(x2)
+                x1_indices, x1_weights, x1_offsets = \
+                    x1_indices.to(device), x1_weights.to(device), x1_offsets.to(device)
 
-                input_distances = torch.norm(x1 - x2, dim=1)
+                x2_indices, x2_weights, x2_offsets = \
+                    x2_indices.to(device), x2_weights.to(device), x2_offsets.to(device)
+
+                y1 = self((x1_indices, x1_weights, x1_offsets))
+                y2 = self((x2_indices, x2_weights, x2_offsets))
+
                 output_distances = torch.norm(y1 - y2, dim=1)
-                ratio = input_distances / output_distances
+                ratio = distances / output_distances
                 for element in ratio:
                     if not element.isnan():
                         total += torch.mean(element)

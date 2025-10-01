@@ -1,27 +1,27 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
+from typing import List
+from .embedding_bag_dataset import EmbeddingBagDataset, collate_double_batch
 
 
-def train_on_batch(x_batch_, model, loss_fn, optimizer, device):
+def train_on_batch(x1, x2, distances, model, loss_fn, optimizer, device):
+    x1_indices, x1_weights, x1_offsets = x1
+    x2_indices, x2_weights, x2_offsets = x2
 
-    x_batch = x_batch_[0]
-    x_batch = x_batch[:(len(x_batch) // 2) * 2]
-    half_ = len(x_batch) // 2
-    x1 = x_batch[:half_]
-    x2 = x_batch[half_:]
+    x1_indices, x1_weights, x1_offsets = \
+        x1_indices.to(device), x1_weights.to(device), x1_offsets.to(device)
 
-    x1 = x1.to(device)
-    x2 = x2.to(device)
+    x2_indices, x2_weights, x2_offsets = \
+        x2_indices.to(device), x2_weights.to(device), x2_offsets.to(device)
 
-    y1 = model(x1)
-    y2 = model(x2)
+    y1 = model((x1_indices, x1_weights, x1_offsets))
+    y2 = model((x2_indices, x2_weights, x2_offsets))
 
-    input_distances = torch.norm(x1 - x2, dim=1)
     output_distances = torch.norm(y1 - y2, dim=1)
 
-    loss = loss_fn(output_distances, input_distances)
+    loss = loss_fn(output_distances, distances)
 
     optimizer.zero_grad()
     loss.backward()
@@ -32,7 +32,8 @@ def train_on_batch(x_batch_, model, loss_fn, optimizer, device):
 
 def fit(
         model: nn.Module,
-        data: torch.Tensor,
+        data_indices: List[List[int]],
+        data_weights: List[List[float]],
         device,
         epochs: int=1000,
         batch_size: int=64,
@@ -43,10 +44,8 @@ def fit(
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.MSELoss()
 
-    data_tensor = data.clone().detach()
-
-    dataset = TensorDataset(data_tensor)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataset = EmbeddingBagDataset(data_indices, data_weights)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_double_batch)
 
     model.calc_gamma(dataloader, device)
 
@@ -57,8 +56,8 @@ def fit(
 
         total_loss = 0
 
-        for x_batch_ in dataloader:
-            total_loss += train_on_batch(x_batch_, model, loss_fn, optimizer, device)
+        for batch1, batch2, distances in dataloader:
+            total_loss += train_on_batch(batch1, batch2, distances, model, loss_fn, optimizer, device)
 
         avg_loss_primary = total_loss / dataset_len
 

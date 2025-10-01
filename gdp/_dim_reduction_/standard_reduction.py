@@ -50,11 +50,15 @@ def reduce_using_mds(genes_matrix: np.ndarray, reduced_size: int=2):
     Returns:
         np.ndarray: The reduced matrix.
     """
-    mds = MDS(n_components=reduced_size, dissimilarity="precomputed")
 
-    distance_mat = pairwise_distances(genes_matrix, metric='euclidean')
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        
+        mds = MDS(n_components=reduced_size, dissimilarity="precomputed")
 
-    return mds.fit_transform(distance_mat)
+        distance_mat = pairwise_distances(genes_matrix, metric='euclidean')
+
+        return mds.fit_transform(distance_mat)
 
 
 def reduce_using_t_sne(genes_matrix: np.ndarray, reduced_size: int=2, **kwargs):

@@ -177,3 +177,6 @@ examples/from_previous_runs/collected_data/*
 examples/from_previous_runs/reduced_data/*
 examples/from_previous_runs/output/*
 examples/simple_ga/output/*
+examm_visualizer/examm_neat_data/*
+examm_visualizer/output/*
+examm_visualizer/reduced_data/*

@@ -4,10 +4,15 @@ from .model import GraphingModel
 from .pair_training import fit
 from ...__config__ import _set_kwargs_defaults_
 import os
+from typing import List
+from torch.utils.data import DataLoader
+from .embedding_bag_dataset import EmbeddingBagDataset, _collate_bags
 
 
 def reduce_using_neural_net(
-        genome_data_mat: np.ndarray,
+        data_indices: List[List[int]],
+        data_weights: List[List[float]],
+        genome_size: int,
         model_save_fname: str,
         **kwargs):
     """
@@ -34,9 +39,6 @@ def reduce_using_neural_net(
 
     print(f"Using device: {device}")
 
-    # retrieve the genome size, should be the number of columns in the matrix
-    genome_size = genome_data_mat.shape[1]
-
     model = GraphingModel(
         genome_size,
         hidden_layer1_size=kwargs["hidden_layer1_size"],
@@ -44,13 +46,11 @@ def reduce_using_neural_net(
 
     model = model.to(device)
 
-    # convert the genomes to a tensor
-    genome_data_tensor = torch.tensor(genome_data_mat, dtype=torch.float32)
-
     # fit the model based on the positions, 2D positions should match genome distances
     fit(
         model=model,
-        data=genome_data_tensor,
+        data_indices=data_indices,
+        data_weights=data_weights,
         device=device,
         batch_size=kwargs["batch_size"],
         epochs=kwargs["epochs"],
@@ -61,7 +61,14 @@ def reduce_using_neural_net(
     os.makedirs(kwargs["model_save_dir"], exist_ok=True)
     model.save(model_save_fpath)
 
+
+    dataset = EmbeddingBagDataset(data_indices, data_weights)
+    dataloader = DataLoader(dataset, batch_size=len(data_indices), shuffle=True, collate_fn=_collate_bags)
+
+
     model.eval()
     with torch.no_grad():
-        genome_data_tensor = genome_data_tensor.to(device)
-        return model(genome_data_tensor).cpu().numpy()
+        for input_indices, input_weights, offsets in dataloader:
+            input_indices, input_weights, offsets = \
+                input_indices.to(device), input_weights.to(device), offsets.to(device)
+            return model((input_indices, input_weights, offsets)).cpu().numpy()

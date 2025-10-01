@@ -1,5 +1,4 @@
 from .genome_data import GenomeData
-from ._dim_reduction_.nn_reduction import reduce_using_neural_net
 import numpy as np
 import copy
 import json
@@ -18,67 +17,20 @@ def _convert_genome_data_to_matrix(genome_data: GenomeData):
     Returns:
         A matrix of the genome data, along with identifiers for the indices.
     """
-
-    # all genome IDs
     genome_ids = genome_data.get_unique_genome_id_list()
-
-    # all unique gene keys
     gene_keys = genome_data.get_unique_gene_key_list()
 
-    # dict for converting gene keys to indices
     gene_index = {gk: j for j, gk in enumerate(gene_keys)}
-
-    # initialize the genes matrix to output to
     genes_matrix = np.zeros((len(genome_ids), len(gene_keys)), dtype=np.float32)
 
-    # iterate through genomes IDs
-    for genome_idx, genome_id in enumerate(genome_ids):
-
-        # retrieve the genome data from this genome ID
-        genome = genome_data._population[genome_id]
-
-        # iterate through gene keys and their values
-        for gene_key, gene_val in genome.items():
-
-            # get the matrix index for this key
-            gene_idx = gene_index.get(gene_key)
-
-            # check if that index exists in the dict (if it doesn't, then there isn't a matrix element for this)
-            if gene_idx is not None:
-
-                # then set the matrix with this value
-                genes_matrix[genome_idx, gene_idx] = gene_val
+    for i, gid in enumerate(genome_ids):
+        genome = genome_data._population[gid]
+        for k, val in genome.items():
+            j = gene_index.get(k)
+            if j is not None:
+                genes_matrix[i, j] = val
 
     return genes_matrix, genome_ids, gene_keys
-
-
-def _convert_genome_data_to_bag(genome_data: GenomeData):
-
-    # all genome IDs
-    genome_ids = genome_data.get_unique_genome_id_list()
-
-    # all unique gene keys
-    gene_keys = genome_data.get_unique_gene_key_list()
-
-    # dict for converting gene key to index
-    gene_index = {gk: j for j, gk in enumerate(gene_keys)}
-
-    indices = []
-    weights = []
-
-    # iterate through genomes IDs
-    for genome_id in genome_ids:
-
-        # retrieve the genome data from this genome ID
-        genome = genome_data._population[genome_id]
-
-        gene_idx_list = [gene_index[gene_key] for gene_key in genome]
-        gene_w_list = [float(gene_weight) for gene_weight in genome.values()]
-
-        indices.append(gene_idx_list)
-        weights.append(gene_w_list)
-
-    return genome_ids, indices, weights
 
 
 class ReducedGenomeData(GenomeData):
@@ -128,35 +80,6 @@ class ReducedGenomeData(GenomeData):
         reduced_genome_data.encoded_genomes = {genome_ids[i]: mat_row for i, mat_row in enumerate(genes_matrix)}
 
         positions = dim_reduction_function(genes_matrix)
-
-        # save the positions
-        reduced_genome_data.reduced_positions = {genome_ids[i]: pos for i, pos in enumerate(positions)}
-
-        return reduced_genome_data
-
-    @staticmethod
-    def perform_reduction_nn(source: Union[GenomeData, str, os.PathLike], model_save_fname):
-        if isinstance(source, GenomeData):
-            genome_data = source
-        elif isinstance(source, (str, os.PathLike)):
-            genome_data = GenomeData.load(zip_fpath=source)
-        else:
-            raise TypeError("Expected GenomeData instance or path to file.")
-
-        genome_ids, indices, weights = _convert_genome_data_to_bag(genome_data=genome_data)
-
-        reduced_genome_data = ReducedGenomeData()
-        reduced_genome_data._population = copy.deepcopy(genome_data._population)
-        reduced_genome_data._population_info = copy.deepcopy(genome_data._population_info)
-
-        gene_keys = genome_data.get_unique_gene_key_list()
-
-        # save the genes
-        genes_matrix, _, _ = _convert_genome_data_to_matrix(genome_data=genome_data)
-        reduced_genome_data.encoded_genomes = {genome_ids[i]: mat_row for i, mat_row in enumerate(genes_matrix)}
-
-        # perform dimensionality reduction
-        positions = reduce_using_neural_net(indices, weights, len(gene_keys), model_save_fname)
 
         # save the positions
         reduced_genome_data.reduced_positions = {genome_ids[i]: pos for i, pos in enumerate(positions)}

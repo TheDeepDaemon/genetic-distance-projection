@@ -16,7 +16,7 @@ sys.path.append(str(project_root))
 """
  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
 """
-from gdp import GenomeDataCollector, ReducedGenomeData, GenomeVisualizer
+from gdp import GenomeDataCollector, ReducedGenomeData, GenomeVisualizer, reduce_using_pca
 import os
 from datetime import datetime
 
@@ -59,8 +59,9 @@ def main(data_path, use_gene_data, use_weight_data):
             key="recurrent_edges")
 
     # dimensionality reduction
-    reduced_genome_data = ReducedGenomeData.perform_reduction_nn(
-        source=genome_data_collector, model_save_fname="model")
+    reduced_genome_data = ReducedGenomeData.perform_reduction(
+        source=genome_data_collector,
+        dim_reduction_function=reduce_using_pca)
 
     # visualize
     genome_visualizer = GenomeVisualizer(source=reduced_genome_data)

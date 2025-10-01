@@ -13,7 +13,7 @@ sys.path.append(str(project_root))
  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
 """
 from gdp import GenomeDataCollector, ReducedGenomeData
-from gdp import reduce_using_neural_net, reduce_using_mds, reduce_using_pca
+from gdp import reduce_using_mds, reduce_using_pca
 from gdp import set_config_defaults
 from datetime import datetime
 import os
@@ -101,7 +101,7 @@ def main_single(data_source, reduction_type, use_gene_data, use_weight_data, tru
         truncate_to: The size to truncate the data down to.
     """
 
-    data_path = os.path.join("examm_neat_data", data_source)
+    data_path = os.path.join("formatted_data", data_source)
 
     reduced_genome_data = get_reduced(
         data_path, reduction_type, use_gene_data, use_weight_data, truncate_to)
@@ -126,7 +126,7 @@ def main_single(data_source, reduction_type, use_gene_data, use_weight_data, tru
 
 def main_multi(reduction_type, use_gene_data, use_weight_data, truncate_to, **kwargs):
 
-    data_dir = "examm_neat_data"
+    data_dir = "formatted_data"
 
     fnames = [fname for fname in os.listdir(data_dir) if os.path.splitext(fname)[1].lower() == '.zip']
 

@@ -1,4 +1,4 @@
-data_source: EXAMM_no_repop_10_epochs.zip
+data_source: _
 reduction_type: nn
 use_gene_data: 1
 use_weight_data: 0

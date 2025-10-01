@@ -177,8 +177,9 @@ examples/from_previous_runs/collected_data/*
 examples/from_previous_runs/reduced_data/*
 examples/from_previous_runs/output/*
 examples/simple_ga/output/*
+examples/from_previous_runs/saved_models/*
 examm_visualizer/examm_neat_data/*
+examm_visualizer/formatted_data/*
 examm_visualizer/reduced_data/*
 examm_visualizer/output/*
-examples/from_previous_runs/saved_models/*
 examm_visualizer/saved_models/*

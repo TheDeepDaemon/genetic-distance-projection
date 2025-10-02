@@ -101,6 +101,9 @@ def main_single(data_source, reduction_type, use_gene_data, use_weight_data, tru
         truncate_to: The size to truncate the data down to.
     """
 
+    if data_source == "_":
+        data_source = input("Please enter the path to retrieve the data from: ")
+
     data_path = os.path.join("formatted_data", data_source)
 
     reduced_genome_data = get_reduced(

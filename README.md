@@ -31,3 +31,11 @@ if __name__=="__main__":
     main(f"knapsack_data/{fname}")
 ```
 and change the filename: "P01.json" to one of the others in the `knapsack_data` directory. 
+
+
+# EXAMM visualizer
+The module, `examm_visualizer` is used to take raw data from an EXAMM run and run the visualization algorithm. The `examm_neat_data` directory is expected to have a number of folders with data from runs, and subfolders for different numbers of epochs. 
+
+- To run this data, you must first reformat the data by running `examm_visualizer/00_convert_format.py`. You only need to to this once after adding the data. 
+- After that, run `examm_visualizer/01_reduction.py` to perform dimensionality reduction. If you don't enter a file path in the `config.yaml` file, then it will prompt you for a file path or file name to get the data from. The data that you should be getting the data from should be from one of the `.zip` files in the `examm_visualizer/formatted_data` directory. 
+- Once dimensionality reduction has been performed, you can run `examm_visualizer/02_visualization.py` to generate visualizations. 
